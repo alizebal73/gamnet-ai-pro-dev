@@ -27,6 +27,7 @@ KNOWN_SETTINGS = {
     "alert_disk_min_mb", "alert_pc_offline_min",
     "alert_shift_max_hours", "alert_login_spike",
     "alert_login_window_min",
+    "backup_dir",
 }
 
 
@@ -101,6 +102,9 @@ def _validate_setting(key: str, value: str) -> None:
         if not value.isdigit() or not 1 <= int(value) <= 1440:
             raise ValueError(
                 "alert_login_window_min must be 1..1440")
+    elif key == "backup_dir":
+        if len(value) > 300:
+            raise ValueError("backup_dir too long (max 300)")
 
 
 def _client_ip(request: Request) -> str | None:

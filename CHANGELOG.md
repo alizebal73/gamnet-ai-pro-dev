@@ -34,6 +34,7 @@
 - Reports: sales summary (gross/discounts/refunds/net, by method + operator), shift report, per-PC utilization, inventory valuation + low stock, audited CSV export (sales/shifts/sessions/inventory)
 - Alerts: rule evaluation (server disk, PC offline, stuck shifts, login spikes, low stock) with dedupe + auto-resolve, ack/resolve inbox, Telegram notifications for new warnings
 - PC health: heartbeat samples incl. temperature stored in `pc_health` history, per-PC health endpoint, admin diagnostics bundle (disk/db/fleet/sessions/alerts); remote commands verified end-to-end (queue + WS/REST delivery + agent execution + ACK)
+- Backup/restore: online SQLite backups with SHA-256 manifests, verify + guarded restore (confirmation echo, integrity gate, safety copy), systemd unit, install script, API-driven backup script
 
 ### Fixed
 - Replaced unmaintained `passlib` with direct `bcrypt` for PIN/password hashing (passlib 1.7.4 crashes with bcrypt >= 4.1, which broke customer creation with HTTP 500)

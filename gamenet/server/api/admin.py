@@ -10,6 +10,11 @@ from gamenet.server.api.deps import require_permission
 from gamenet.server.db import get_connection
 from gamenet.server.models.schemas import (
     AuditListResponse,
+    BackupListResponse,
+    BackupResponse,
+    BackupRestoreRequest,
+    BackupRestoreResponse,
+    BackupVerifyResponse,
     AuditResponse,
     AuditVerifyResponse,
     CommandResponse,
@@ -256,3 +261,91 @@ def diagnostics(
             open_alerts=open_alerts,
             recent_alerts=recent_alerts,
         )
+
+
+@router.post("/backups", response_model=BackupResponse, status_code=201)
+def create_backup(
+    request: Request,
+    auth: AuthContext = Depends(
+        require_permission(Permission.BACKUP_MANAGE)),
+) -> BackupResponse:
+    from gamenet.server.services.backup_service import (
+        BackupError,
+        BackupService,
+    )
+
+    with get_connection() as conn:
+        try:
+            manifest = BackupService(conn).create()
+        except BackupError as exc:
+            raise HTTPException(status_code=409, detail=str(exc))
+        log_audit(
+            conn, action="BACKUP_CREATE", user_id=auth.user_id,
+            role_name=",".join(auth.roles), entity_type="backup",
+            entity_id=manifest["id"],
+            ip_address=request.client.host if request.client else None,
+        )
+        return BackupResponse(**manifest)
+
+
+@router.get("/backups", response_model=BackupListResponse)
+def list_backups(
+    auth: AuthContext = Depends(
+        require_permission(Permission.BACKUP_MANAGE)),
+) -> BackupListResponse:
+    from gamenet.server.services.backup_service import BackupService
+
+    with get_connection() as conn:
+        items = BackupService(conn).list_backups()
+        return BackupListResponse(
+            items=[BackupResponse(**m) for m in items],
+            total=len(items),
+        )
+
+
+@router.get("/backups/{backup_id}/verify",
+            response_model=BackupVerifyResponse)
+def verify_backup(
+    backup_id: str,
+    auth: AuthContext = Depends(
+        require_permission(Permission.BACKUP_MANAGE)),
+) -> BackupVerifyResponse:
+    from gamenet.server.services.backup_service import BackupService
+
+    with get_connection() as conn:
+        try:
+            return BackupVerifyResponse(
+                **BackupService(conn).verify(backup_id))
+        except NotFound as exc:
+            raise HTTPException(status_code=404, detail=str(exc))
+
+
+@router.post("/backups/{backup_id}/restore",
+             response_model=BackupRestoreResponse)
+def restore_backup(
+    backup_id: str,
+    payload: BackupRestoreRequest,
+    request: Request,
+    auth: AuthContext = Depends(
+        require_permission(Permission.BACKUP_MANAGE)),
+) -> BackupRestoreResponse:
+    from gamenet.server.services.backup_service import (
+        BackupError,
+        BackupService,
+    )
+
+    with get_connection() as conn:
+        try:
+            result = BackupService(conn).restore(
+                backup_id, confirm=payload.confirm)
+        except NotFound as exc:
+            raise HTTPException(status_code=404, detail=str(exc))
+        except BackupError as exc:
+            raise HTTPException(status_code=409, detail=str(exc))
+        log_audit(
+            conn, action="BACKUP_RESTORE", user_id=auth.user_id,
+            role_name=",".join(auth.roles), entity_type="backup",
+            entity_id=backup_id,
+            ip_address=request.client.host if request.client else None,
+        )
+        return BackupRestoreResponse(**result)

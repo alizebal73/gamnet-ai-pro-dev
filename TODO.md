@@ -54,8 +54,8 @@
 
 ## Phase 5
 - [ ] Failure Tests
-- [ ] Backup
-- [ ] Restore
+- [x] Backup
+- [x] Restore
 - [ ] Production Hardening
-- [ ] Installer
+- [x] Installer
 - [ ] Documentation

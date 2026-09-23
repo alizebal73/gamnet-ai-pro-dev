@@ -1,0 +1,16 @@
+[Unit]
+Description=GameNet Pro server
+After=network.target
+
+[Service]
+Type=simple
+User=gamenet
+WorkingDirectory=/opt/gamnet-ai-pro
+Environment=DATABASE_PATH=/var/lib/gamenet/gamenet.db
+Environment=APP_ENV=production
+ExecStart=/opt/gamnet-ai-pro/.venv/bin/uvicorn gamenet.server.main:app --host 0.0.0.0 --port 8000
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

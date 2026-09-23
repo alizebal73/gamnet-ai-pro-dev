@@ -925,6 +925,38 @@ class DiagnosticsResponse(BaseModel):
     recent_alerts: list[dict]
 
 
+class BackupResponse(BaseModel):
+    id: str
+    filename: str
+    size_bytes: int
+    sha256: str
+    created_at: str
+
+
+class BackupListResponse(BaseModel):
+    items: list[BackupResponse]
+    total: int
+
+
+class BackupVerifyResponse(BaseModel):
+    id: str
+    filename: str
+    size_bytes: int
+    sha256: str
+    created_at: str
+    hash_ok: bool
+    integrity_ok: bool
+
+
+class BackupRestoreRequest(BaseModel):
+    confirm: str = Field(min_length=1, max_length=64)
+
+
+class BackupRestoreResponse(BaseModel):
+    restored: str
+    safety_copy: str
+
+
 class PresenceResponse(BaseModel):
     pc_id: str
     online: bool
