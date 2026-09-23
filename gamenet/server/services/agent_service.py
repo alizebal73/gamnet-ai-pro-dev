@@ -1,9 +1,14 @@
-"""Agent channel service: device auth, heartbeat, command queue (P2-1).
+"""Agent channel service: device auth, heartbeat, command queue (P2-1/2/3).
 
 Master Spec: device auth separate from customer (135), heartbeat request
-(328) / response (327), remote command execution with ACK (121-123).
+(328) / response (327), remote command execution with ACK (121-123),
+reconnect sync (21-23).
 Presence lives in memory (realtime.presence); the DB only stores tokens,
 the command queue, and periodic last-seen flushes.
+
+`emit_command` is the single choke point through which session lifecycle
+events reach PCs: it queues the command and, if the PC has a live socket,
+pushes it instantly (P2-3).
 """
 
 from __future__ import annotations
@@ -15,12 +20,13 @@ import time
 from datetime import datetime, timezone
 
 from gamenet.server.db import utc_now_iso
-from gamenet.server.realtime import presence
+from gamenet.server.realtime import hub, presence
 from gamenet.server.repositories.agent_repository import (
     AgentCommandRepository,
     AgentTokenRepository,
 )
 from gamenet.server.repositories.pc_repository import PcRepository
+from gamenet.server.repositories.session_repository import SessionRepository
 from gamenet.server.repositories.settings_repository import SettingsRepository
 from gamenet.server.security.tokens import hash_token
 from gamenet.server.services.errors import NotFound
@@ -35,6 +41,37 @@ class AgentAuthError(Exception):
     pass
 
 
+def emit_command(
+    conn: sqlite3.Connection,
+    pc_id: str | None,
+    type: AgentCommandType | str,
+    payload: dict | None = None,
+    created_by: str | None = None,
+) -> dict | None:
+    """Queue a command for a PC and push it if a socket is live.
+
+    NOTE: the push runs *before* the caller's commit, so an ACK that wins
+    the race gets "Unknown command" — agents keep a pending-ACK list and
+    retry on the next heartbeat, which makes this self-healing.
+    """
+    if not pc_id:
+        return None
+    if isinstance(type, str):
+        type = AgentCommandType(type)
+    ttl = SettingsRepository(conn).get_int("agent_command_ttl_sec", 300)
+    row = AgentCommandRepository(conn).queue(pc_id, type, payload,
+                                             created_by, ttl)
+    pushed = hub.push_sync(pc_id, {
+        "type": "COMMAND",
+        "command": {"id": row["id"], "type": row["type"],
+                    "payload": json.loads(row["payload_json"] or "{}")},
+    })
+    if pushed:
+        AgentCommandRepository(conn).mark_sent([row["id"]])
+        row = AgentCommandRepository(conn).get(row["id"])
+    return row
+
+
 class AgentService:
     def __init__(self, conn: sqlite3.Connection):
         self._conn = conn
@@ -42,6 +79,7 @@ class AgentService:
         self._tokens = AgentTokenRepository(conn)
         self._commands = AgentCommandRepository(conn)
         self._settings = SettingsRepository(conn)
+        self._sessions = SessionRepository(conn)
 
     # -- device auth ----------------------------------------------------
     def authenticate(self, *, device_code: str, secret: str,
@@ -85,6 +123,15 @@ class AgentService:
         self._commands.mark_sent([c["id"] for c in pending])
         lease_until = datetime.fromtimestamp(
             rec.lease_until, tz=timezone.utc).isoformat(timespec="seconds")
+        live = self._sessions.active_for_pc(token_row["pc_id"])
+        session_info = None
+        if live is not None:
+            session_info = {
+                "id": live["id"], "status": live["status"],
+                "customer_id": live["customer_id"],
+                "pc_id": live["pc_id"],
+                "started_at": live.get("started_at"),
+            }
         return {
             "server_time": now_iso,
             "lease_sec": lease_sec,
@@ -94,6 +141,7 @@ class AgentService:
                  "payload": json.loads(c["payload_json"] or "{}")}
                 for c in pending
             ],
+            "session": session_info,
         }
 
     # -- command ACK (agent side) ---------------------------------------

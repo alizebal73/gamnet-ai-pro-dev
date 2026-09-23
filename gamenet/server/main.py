@@ -48,10 +48,18 @@ class SafeModeMiddleware(BaseHTTPMiddleware):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    from gamenet.server.workers.lease_monitor import start_loop
+
     run_migrations()
     report = startup_checks()
     print(f"[startup] recovery checks: {report}")
+    with get_connection() as conn:
+        interval = SettingsRepository(conn).get_int(
+            "lease_monitor_interval_sec", 10)
+    stop_monitor = start_loop(interval)
+    print(f"[startup] lease monitor every {interval}s")
     yield
+    stop_monitor.set()
 
 
 app = FastAPI(

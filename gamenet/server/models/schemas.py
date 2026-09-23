@@ -543,6 +543,7 @@ class HeartbeatResponse(BaseModel):
     lease_sec: int
     lease_until: str
     commands: list[AgentCommandPayload] = []
+    session: dict | None = None
 
 
 class CommandAckRequest(BaseModel):

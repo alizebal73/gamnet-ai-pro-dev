@@ -19,6 +19,7 @@ KNOWN_SETTINGS = {
     "store_name", "base_currency_unit", "price_per_hour", "weekend_days",
     "operator_max_discount_pct", "vip_renewal_mode", "credit_priority",
     "agent_lease_sec", "agent_token_ttl_hours", "agent_command_ttl_sec",
+    "lease_monitor_interval_sec",
 }
 
 
@@ -53,6 +54,9 @@ def _validate_setting(key: str, value: str) -> None:
     elif key == "agent_command_ttl_sec":
         if not value.isdigit() or not 10 <= int(value) <= 86400:
             raise ValueError("agent_command_ttl_sec must be 10..86400")
+    elif key == "lease_monitor_interval_sec":
+        if not value.isdigit() or not 5 <= int(value) <= 300:
+            raise ValueError("lease_monitor_interval_sec must be 5..300")
 
 
 def _client_ip(request: Request) -> str | None:

@@ -99,7 +99,7 @@ class AgentCommandRepository:
     def pending_for_pc(self, pc_id: str, limit: int = 20) -> list[dict]:
         rows = self._conn.execute(
             """SELECT * FROM agent_commands WHERE pc_id = ? AND status = 'PENDING'
-               ORDER BY created_at LIMIT ?""",
+               ORDER BY rowid LIMIT ?""",
             (pc_id, limit),
         ).fetchall()
         return [dict(r) for r in rows]
@@ -135,7 +135,7 @@ class AgentCommandRepository:
 
     def list_for_pc(self, pc_id: str, limit: int = 50) -> list[dict]:
         rows = self._conn.execute(
-            "SELECT * FROM agent_commands WHERE pc_id = ? ORDER BY created_at DESC LIMIT ?",
+            "SELECT * FROM agent_commands WHERE pc_id = ? ORDER BY rowid DESC LIMIT ?",
             (pc_id, limit),
         ).fetchall()
         return [dict(r) for r in rows]

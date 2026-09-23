@@ -1,11 +1,16 @@
 """Gaming sessions (Master Spec 25-31, 41-46, 157-166, 216).
 
 Lifecycle: CREATED -> AUTHORIZED -> ACTIVE -> PAUSED -> ACTIVE ... -> ENDED.
-INTERRUPTED / CONNECTION_LOST are set by the heartbeat layer (P2).
+Lease expiry auto-pauses with reason LINK_LOST (P2-3; the lease monitor
+calls pause()); INTERRUPTED / CONNECTION_LOST remain for agent-reported
+states.
 
 Time accounting uses SERVER timestamps only (Spec 47): every pause/end/
 transfer commits elapsed seconds from the credit ledger. Timers never run
 on client clocks.
+
+Every lifecycle transition emits the matching agent command (LOCK/UNLOCK)
+so the PC screen follows the session without polling (P2-3).
 """
 
 import sqlite3
@@ -15,10 +20,11 @@ from gamenet.server.db import utc_now_iso
 from gamenet.server.repositories.customer_repository import CustomerRepository
 from gamenet.server.repositories.pc_repository import PcRepository
 from gamenet.server.repositories.session_repository import SessionRepository
+from gamenet.server.services.agent_service import emit_command
 from gamenet.server.services.credit_service import CreditService
 from gamenet.server.services.errors import InvalidState, NotFound
 from gamenet.server.services.numbering import next_number
-from gamenet.shared.enums import SessionStatus
+from gamenet.shared.enums import AgentCommandType, SessionStatus
 
 ACTIVE_STATUSES = [
     SessionStatus.AUTHORIZED.value, SessionStatus.ACTIVE.value,
@@ -132,6 +138,8 @@ class SessionService:
             to_status=SessionStatus.ACTIVE.value, pc_id=session["pc_id"],
             actor_user_id=actor_user_id,
         )
+        emit_command(self._conn, session["pc_id"], AgentCommandType.UNLOCK,
+                     {"session_id": session_id}, actor_user_id)
         return self.detail(session_id)
 
     def pause(
@@ -162,6 +170,9 @@ class SessionService:
             to_status=SessionStatus.PAUSED.value, pc_id=session["pc_id"],
             actor_user_id=actor_user_id, reason=reason,
         )
+        emit_command(self._conn, session["pc_id"], AgentCommandType.LOCK,
+                     {"session_id": session_id,
+                      "reason": reason or "PAUSED"}, actor_user_id)
         return self.detail(session_id)
 
     def resume(self, session_id: str, *, actor_user_id: str | None = None) -> dict:
@@ -182,6 +193,8 @@ class SessionService:
             to_status=SessionStatus.ACTIVE.value, pc_id=session["pc_id"],
             actor_user_id=actor_user_id,
         )
+        emit_command(self._conn, session["pc_id"], AgentCommandType.UNLOCK,
+                     {"session_id": session_id}, actor_user_id)
         return self.detail(session_id)
 
     def end(
@@ -227,6 +240,9 @@ class SessionService:
             to_status=SessionStatus.CANCELLED.value, pc_id=session["pc_id"],
             actor_user_id=actor_user_id, reason=reason,
         )
+        emit_command(self._conn, session["pc_id"], AgentCommandType.LOCK,
+                     {"session_id": session_id,
+                      "reason": reason or "CANCELLED"}, actor_user_id)
         return self.detail(session_id)
 
     def transfer(
@@ -265,6 +281,11 @@ class SessionService:
             pc_id=new_pc_id, actor_user_id=actor_user_id,
             reason=f"{old_pc} -> {new_pc_id}: {reason.strip()}",
         )
+        emit_command(self._conn, old_pc, AgentCommandType.LOCK,
+                     {"session_id": session_id, "reason": "TRANSFERRED_OUT"},
+                     actor_user_id)
+        emit_command(self._conn, new_pc_id, AgentCommandType.UNLOCK,
+                     {"session_id": session_id}, actor_user_id)
         return self.detail(session_id)
 
     # ---- internals ----
@@ -337,4 +358,7 @@ class SessionService:
             to_status=SessionStatus.ENDED.value, pc_id=session["pc_id"],
             actor_user_id=actor_user_id, reason=reason,
         )
+        emit_command(self._conn, session["pc_id"], AgentCommandType.LOCK,
+                     {"session_id": session["id"], "reason": reason},
+                     actor_user_id)
         return self.detail(session["id"])
