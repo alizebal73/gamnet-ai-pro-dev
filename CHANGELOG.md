@@ -15,6 +15,8 @@
 - Append-only audit writer (`audit_service.log_audit`) wired into auth + customer creation
 - Admin CLI: `python -m gamenet.server.cli create-admin`
 - Auth test suite (`tests/test_auth.py`, 10 tests)
+- Request-ID idempotency: migration `003_idempotency.sql`, `idempotency.idempotent_call`, `X-Request-ID` support on customer creation (replay returns stored response, payload change rejected)
+- Atomic transaction helper `db.run_in_transaction` + SQLite `busy_timeout` for concurrent writers
 
 ### Fixed
 - Replaced unmaintained `passlib` with direct `bcrypt` for PIN/password hashing (passlib 1.7.4 crashes with bcrypt >= 4.1, which broke customer creation with HTTP 500)

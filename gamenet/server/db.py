@@ -27,6 +27,7 @@ def connect() -> sqlite3.Connection:
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
     conn.execute("PRAGMA journal_mode = WAL")
+    conn.execute("PRAGMA busy_timeout = 5000")
     return conn
 
 
@@ -41,6 +42,16 @@ def get_connection():
         raise
     finally:
         conn.close()
+
+
+def run_in_transaction(fn):
+    """Run ``fn(conn)`` atomically (Master Spec 81).
+
+    Multi-step operations (sale + payment + activation + audit) must run
+    inside one transaction so a failure never leaves a half-applied state.
+    """
+    with get_connection() as conn:
+        return fn(conn)
 
 
 def run_migrations(migrations_dir: Path | None = None) -> list[int]:
