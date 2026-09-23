@@ -58,6 +58,15 @@ def grant_for_sale(
                 sale_id=sale["id"], sale_item_id=item["id"],
                 ref_id=plan["id"],
             ))
+        elif kind == SaleItemKind.FOOD.value:
+            from gamenet.server.services.inventory_service import (
+                InventoryService,
+            )
+
+            granted.append(InventoryService(conn).sell(
+                item["ref_id"], qty=item["qty"], sale_id=sale["id"],
+                sale_item_id=item["id"], created_by=created_by,
+            ))
         else:
             raise InvalidState(f"cannot activate item kind '{kind}'")
     return granted

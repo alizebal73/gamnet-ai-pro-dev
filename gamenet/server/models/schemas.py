@@ -652,6 +652,55 @@ class ShiftResponse(BaseModel):
     expected_live: int | None = None
 
 
+class InventoryItemCreate(BaseModel):
+    sku: str = Field(min_length=1, max_length=40)
+    name: str = Field(min_length=1, max_length=120)
+    unit_price: int = Field(ge=0)
+    low_stock_at: int = Field(default=0, ge=0)
+
+
+class InventoryItemUpdate(BaseModel):
+    name: str | None = Field(default=None, max_length=120)
+    unit_price: int | None = Field(default=None, ge=0)
+    low_stock_at: int | None = Field(default=None, ge=0)
+
+
+class InventoryItemResponse(BaseModel):
+    id: str
+    sku: str
+    name: str
+    unit_price: int
+    stock_qty: int
+    low_stock_at: int
+    low_stock: bool
+    status: str
+    created_at: str
+    updated_at: str
+
+
+class StockReceiveRequest(BaseModel):
+    qty: int = Field(gt=0)
+    reason: str | None = Field(default=None, max_length=300)
+
+
+class StockAdjustRequest(BaseModel):
+    delta: int
+    reason: str = Field(min_length=1, max_length=300)
+
+
+class StockLedgerResponse(BaseModel):
+    id: str
+    item_id: str
+    delta: int
+    balance_after: int
+    kind: str
+    ref_type: str | None
+    ref_id: str | None
+    reason: str | None
+    created_by: str | None
+    created_at: str
+
+
 class PresenceResponse(BaseModel):
     pc_id: str
     online: bool

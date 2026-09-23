@@ -42,7 +42,7 @@
 - [x] Cash Reconciliation
 - [x] Refund
 - [x] Discount
-- [ ] Inventory
+- [x] Inventory
 - [ ] Reservations
 
 ## Phase 4

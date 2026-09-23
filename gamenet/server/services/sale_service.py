@@ -12,10 +12,11 @@ from gamenet.server.services.numbering import next_number
 from gamenet.server.services.pricing_service import PricingService
 from gamenet.shared.enums import PaymentStatus, SaleItemKind, SaleStatus
 
-# Item kinds priced server-side. FOOD/ACCESSORY need the inventory catalog (P3).
+# Item kinds priced server-side. ACCESSORY still needs a catalog (later).
 SUPPORTED_KINDS = {
     SaleItemKind.TIME.value, SaleItemKind.RECHARGE.value,
     SaleItemKind.VIP.value, SaleItemKind.PACKAGE.value,
+    SaleItemKind.FOOD.value,
 }
 
 
@@ -190,6 +191,8 @@ class SaleService:
             return self._price_vip_item(raw, index)
         if kind == SaleItemKind.PACKAGE.value:
             return self._price_package_item(raw, index)
+        if kind == SaleItemKind.FOOD.value:
+            return self._price_food_item(raw, index)
         # RECHARGE: the amount IS the value granted; operator enters it.
         unit_price = raw.get("unit_price") or 0
         if unit_price <= 0:
@@ -263,5 +266,44 @@ class SaleService:
             "duration_sec": pkg["duration_sec"],
             "pc_class": None,
             "ref_id": pkg["id"],
+            "price_snapshot": json.dumps(snapshot, ensure_ascii=True),
+        }
+
+    def _price_food_item(self, raw: dict, index: int) -> dict:
+        from gamenet.server.repositories.inventory_repository import (
+            InventoryRepository,
+        )
+
+        item_id = raw.get("ref_id")
+        if not item_id:
+            raise ValueError(
+                f"item {index}: FOOD needs ref_id (inventory item id)")
+        qty = raw.get("qty", 1)
+        if isinstance(qty, bool) or not isinstance(qty, int) or qty < 1:
+            raise ValueError(
+                f"item {index}: FOOD qty must be a positive integer")
+        item = InventoryRepository(self._conn).get(item_id)
+        if item is None or item["status"] != "ACTIVE":
+            raise ValueError(f"item {index}: food item unavailable")
+        if item["stock_qty"] < qty:
+            raise InvalidState(
+                f"item {index}: insufficient stock for {item['name']} "
+                f"({item['stock_qty']} < {qty})"
+            )
+        # Server-side price: client-supplied unit_price is ignored.
+        snapshot = {
+            "kind": "FOOD", "item_id": item["id"], "sku": item["sku"],
+            "item_name": item["name"], "unit_price": item["unit_price"],
+            "qty": qty, "currency_unit": "RIAL",
+        }
+        return {
+            "kind": SaleItemKind.FOOD.value,
+            "label": raw.get("label") or item["name"],
+            "qty": qty,
+            "unit_price": item["unit_price"],
+            "total_price": item["unit_price"] * qty,
+            "duration_sec": None,
+            "pc_class": None,
+            "ref_id": item["id"],
             "price_snapshot": json.dumps(snapshot, ensure_ascii=True),
         }

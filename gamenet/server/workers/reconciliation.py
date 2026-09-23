@@ -26,6 +26,7 @@ def run_reconciliation(
     issues += _check_confirmed_grants(conn)
     issues += _check_payments(conn)
     issues += _check_sessions(conn)
+    issues += _check_stock(conn)
     finished_at = utc_now_iso()
     status = "OK" if not issues else "ISSUES"
     run_id = f"REC-{uuid.uuid4().hex[:12].upper()}"
@@ -211,4 +212,24 @@ def _check_sessions(conn: sqlite3.Connection) -> list[dict]:
             "session_consumed", row["id"],
             f"total_consumed_sec={row['total_consumed_sec']} != consumptions={row['c']}",
         ))
+    return issues
+
+
+def _check_stock(conn: sqlite3.Connection) -> list[dict]:
+    """Inventory: stock_qty must equal the sum of its ledger deltas."""
+    issues = []
+    rows = conn.execute(
+        """SELECT i.id, i.sku, i.stock_qty,
+                  COALESCE(SUM(l.delta), 0) AS ledger_sum
+           FROM inventory_items i
+           LEFT JOIN stock_ledger l ON l.item_id = i.id
+           GROUP BY i.id"""
+    ).fetchall()
+    for r in rows:
+        if r["stock_qty"] != r["ledger_sum"]:
+            issues.append(_issue(
+                "stock_ledger", r["id"],
+                f"sku {r['sku']}: stock {r['stock_qty']} != "
+                f"ledger sum {r['ledger_sum']}",
+            ))
     return issues
