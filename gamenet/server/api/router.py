@@ -2,6 +2,8 @@ from fastapi import APIRouter
 
 from gamenet.server.api import (
     auth,
+    catalog,
+    credit,
     customers,
     health,
     payments,
@@ -18,3 +20,5 @@ api_router.include_router(pricing.router)
 api_router.include_router(settings.router)
 api_router.include_router(sales.router)
 api_router.include_router(payments.router)
+api_router.include_router(catalog.router)
+api_router.include_router(credit.router)

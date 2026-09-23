@@ -4,6 +4,8 @@ from datetime import datetime
 
 from gamenet.shared.enums import (
     CustomerStatus,
+    EntitlementKind,
+    EntitlementStatus,
     PaymentMethod,
     PaymentStatus,
     PricingKind,
@@ -235,4 +237,123 @@ class SaleCancel(BaseModel):
 
 class PaymentListResponse(BaseModel):
     items: list[PaymentResponse]
+    total: int
+
+
+class PackageCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=100)
+    duration_sec: int = Field(gt=0)
+    price: int = Field(gt=0)
+    bonus_sec: int = Field(default=0, ge=0)
+    validity_days: int | None = Field(default=None, gt=0)
+
+
+class PackageUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=100)
+    duration_sec: int | None = Field(default=None, gt=0)
+    price: int | None = Field(default=None, gt=0)
+    bonus_sec: int | None = Field(default=None, ge=0)
+    validity_days: int | None = Field(default=None, gt=0)
+    active: bool | None = None
+
+
+class PackageResponse(BaseModel):
+    id: str
+    name: str
+    duration_sec: int
+    price: int
+    bonus_sec: int
+    validity_days: int | None
+    active: bool
+    created_at: str
+    updated_at: str
+
+
+class PackageListResponse(BaseModel):
+    items: list[PackageResponse]
+    total: int
+
+
+class VipPlanCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=100)
+    duration_days: int = Field(gt=0)
+    price: int = Field(gt=0)
+    discount_pct: int = Field(default=0, ge=0, le=100)
+
+
+class VipPlanUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=100)
+    duration_days: int | None = Field(default=None, gt=0)
+    price: int | None = Field(default=None, gt=0)
+    discount_pct: int | None = Field(default=None, ge=0, le=100)
+    active: bool | None = None
+
+
+class VipPlanResponse(BaseModel):
+    id: str
+    name: str
+    duration_days: int
+    price: int
+    discount_pct: int
+    active: bool
+    created_at: str
+    updated_at: str
+
+
+class VipPlanListResponse(BaseModel):
+    items: list[VipPlanResponse]
+    total: int
+
+
+class EntitlementResponse(BaseModel):
+    id: str
+    customer_id: str
+    kind: EntitlementKind
+    status: EntitlementStatus
+    effective_status: EntitlementStatus | None = None
+    granted_sec: int | None
+    consumed_sec: int
+    remaining_sec: int | None = None
+    starts_at: str
+    expires_at: str | None
+    discount_pct: int
+    sale_id: str | None
+    sale_item_id: str | None
+    ref_id: str | None
+    created_at: str
+    updated_at: str
+
+
+class CreditSummaryResponse(BaseModel):
+    customer_id: str
+    total_remaining_sec: int
+    active_vip: EntitlementResponse | None
+    entitlements: list[EntitlementResponse]
+
+
+class BalanceAdjust(BaseModel):
+    amount: int
+    reason: str = Field(min_length=1, max_length=300)
+
+
+class BalanceLedgerEntry(BaseModel):
+    id: str
+    customer_id: str
+    amount: int
+    balance_after: int
+    kind: str
+    ref_type: str | None
+    ref_id: str | None
+    reason: str | None
+    created_at: str
+
+
+class BalanceResponse(BaseModel):
+    customer_id: str
+    balance: int
+    currency_unit: str
+
+
+class BalanceLedgerResponse(BaseModel):
+    items: list[BalanceLedgerEntry]
     total: int

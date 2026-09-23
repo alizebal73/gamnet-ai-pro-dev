@@ -151,17 +151,6 @@ def test_cash_tendered_validated(client, owner_headers):
     assert r.status_code == 422
 
 
-def test_balance_rejected_until_ledger(client, owner_headers):
-    cust = _customer(client, owner_headers)
-    sale = _draft(client, owner_headers, cust["id"]).json()
-    r = client.post(
-        f"/api/v1/sales/{sale['id']}/payments",
-        json={"method": "BALANCE", "amount": 100},
-        headers=owner_headers,
-    )
-    assert r.status_code == 422
-
-
 def test_mock_card_auto_paid(client, owner_headers):
     cust = _customer(client, owner_headers)
     sale = _draft(client, owner_headers, cust["id"]).json()

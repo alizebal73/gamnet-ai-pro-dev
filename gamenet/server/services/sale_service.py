@@ -1,6 +1,7 @@
 import json
 import sqlite3
 
+from gamenet.server.repositories.catalog_repository import CatalogRepository
 from gamenet.server.repositories.customer_repository import CustomerRepository
 from gamenet.server.repositories.payment_repository import PaymentRepository
 from gamenet.server.repositories.sale_repository import SaleRepository
@@ -11,9 +12,11 @@ from gamenet.server.services.numbering import next_number
 from gamenet.server.services.pricing_service import PricingService
 from gamenet.shared.enums import PaymentStatus, SaleItemKind, SaleStatus
 
-# Item kinds priced server-side in this stage. VIP/PACKAGE activation lands
-# in P1-5, FOOD/ACCESSORY need the inventory catalog (P3).
-SUPPORTED_KINDS = {SaleItemKind.TIME.value, SaleItemKind.RECHARGE.value}
+# Item kinds priced server-side. FOOD/ACCESSORY need the inventory catalog (P3).
+SUPPORTED_KINDS = {
+    SaleItemKind.TIME.value, SaleItemKind.RECHARGE.value,
+    SaleItemKind.VIP.value, SaleItemKind.PACKAGE.value,
+}
 
 
 class SaleService:
@@ -24,6 +27,7 @@ class SaleService:
         self._customers = CustomerRepository(conn)
         self._settings = SettingsRepository(conn)
         self._pricing = PricingService(conn)
+        self._catalog = CatalogRepository(conn)
 
     def detail(self, sale_id: str) -> dict:
         sale = self._sales.get_sale(sale_id)
@@ -75,7 +79,9 @@ class SaleService:
             self._sales.add_item(sale_id=sale_id, **p)
         return self.detail(sale_id)
 
-    def confirm(self, sale_id: str) -> dict:
+    def confirm(self, sale_id: str, *, created_by: str | None = None) -> dict:
+        from gamenet.server.services.activation_service import grant_for_sale
+
         sale = self._sales.get_sale(sale_id)
         if sale is None:
             raise NotFound("Sale not found")
@@ -89,8 +95,8 @@ class SaleService:
                 f"Paid {paid} of {sale['total']}; sale is not fully paid"
             )
         self._sales.set_status(sale_id, SaleStatus.CONFIRMED.value)
-        # NOTE(P1-5): granting entitlements (credit/VIP/balance) hooks here,
-        # after payment confirmation (Payment First -> Activation Second).
+        items = self._sales.list_items(sale_id)
+        grant_for_sale(self._conn, sale, items, created_by=created_by)
         return self.detail(sale_id)
 
     def cancel(self, sale_id: str, *, reason: str) -> dict:
@@ -101,6 +107,11 @@ class SaleService:
             raise InvalidState(f"Sale is {sale['status']}, cannot cancel")
         if not (reason or "").strip():
             raise ValueError("cancel reason is required")
+        settled = self._payments.sum_by_statuses(sale_id, [PaymentStatus.PAID.value])
+        if settled > 0:
+            raise InvalidState(
+                "Sale has settled payments; cancel is forbidden, refund instead"
+            )
         for payment in self._payments.list_by_sale(sale_id):
             if payment["status"] in (
                 PaymentStatus.CREATED.value,
@@ -160,6 +171,10 @@ class SaleService:
                 "ref_id": None,
                 "price_snapshot": json.dumps(quote.snapshot, ensure_ascii=True),
             }
+        if kind == SaleItemKind.VIP.value:
+            return self._price_vip_item(raw, index)
+        if kind == SaleItemKind.PACKAGE.value:
+            return self._price_package_item(raw, index)
         # RECHARGE: the amount IS the value granted; operator enters it.
         unit_price = raw.get("unit_price") or 0
         if unit_price <= 0:
@@ -179,5 +194,59 @@ class SaleService:
             "duration_sec": None,
             "pc_class": None,
             "ref_id": None,
+            "price_snapshot": json.dumps(snapshot, ensure_ascii=True),
+        }
+
+    def _price_vip_item(self, raw: dict, index: int) -> dict:
+        plan_id = raw.get("ref_id")
+        if not plan_id:
+            raise ValueError(f"item {index}: VIP needs ref_id (plan id)")
+        plan = self._catalog.get_vip_plan(plan_id)
+        if plan is None or not plan["active"]:
+            raise ValueError(f"item {index}: VIP plan unavailable")
+        if raw.get("qty", 1) != 1:
+            raise ValueError(f"item {index}: VIP qty must be 1")
+        # Server-side price: client-supplied unit_price is ignored (Spec 197).
+        snapshot = {
+            "kind": "VIP", "plan_id": plan["id"], "plan_name": plan["name"],
+            "duration_days": plan["duration_days"], "price": plan["price"],
+            "discount_pct": plan["discount_pct"], "currency_unit": "RIAL",
+        }
+        return {
+            "kind": SaleItemKind.VIP.value,
+            "label": raw.get("label") or f"VIP {plan['name']}",
+            "qty": 1,
+            "unit_price": plan["price"],
+            "total_price": plan["price"],
+            "duration_sec": None,
+            "pc_class": None,
+            "ref_id": plan["id"],
+            "price_snapshot": json.dumps(snapshot, ensure_ascii=True),
+        }
+
+    def _price_package_item(self, raw: dict, index: int) -> dict:
+        pkg_id = raw.get("ref_id")
+        if not pkg_id:
+            raise ValueError(f"item {index}: PACKAGE needs ref_id (package id)")
+        pkg = self._catalog.get_package(pkg_id)
+        if pkg is None or not pkg["active"]:
+            raise ValueError(f"item {index}: package unavailable")
+        if raw.get("qty", 1) != 1:
+            raise ValueError(f"item {index}: PACKAGE qty must be 1")
+        snapshot = {
+            "kind": "PACKAGE", "package_id": pkg["id"],
+            "package_name": pkg["name"], "duration_sec": pkg["duration_sec"],
+            "bonus_sec": pkg["bonus_sec"], "price": pkg["price"],
+            "validity_days": pkg["validity_days"], "currency_unit": "RIAL",
+        }
+        return {
+            "kind": SaleItemKind.PACKAGE.value,
+            "label": raw.get("label") or f"Package {pkg['name']}",
+            "qty": 1,
+            "unit_price": pkg["price"],
+            "total_price": pkg["price"],
+            "duration_sec": pkg["duration_sec"],
+            "pc_class": None,
+            "ref_id": pkg["id"],
             "price_snapshot": json.dumps(snapshot, ensure_ascii=True),
         }

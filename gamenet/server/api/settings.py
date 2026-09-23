@@ -15,7 +15,10 @@ from gamenet.shared.enums import Permission
 router = APIRouter(prefix="/settings", tags=["settings"])
 
 # Whitelist of editable settings with validators (Master Spec 320 subset).
-KNOWN_SETTINGS = {"store_name", "base_currency_unit", "price_per_hour", "weekend_days"}
+KNOWN_SETTINGS = {
+    "store_name", "base_currency_unit", "price_per_hour", "weekend_days",
+    "operator_max_discount_pct", "vip_renewal_mode", "credit_priority",
+}
 
 
 def _validate_setting(key: str, value: str) -> None:
@@ -31,6 +34,15 @@ def _validate_setting(key: str, value: str) -> None:
     elif key == "base_currency_unit":
         if not value.strip() or len(value) > 10:
             raise ValueError("base_currency_unit must be 1-10 characters")
+    elif key == "operator_max_discount_pct":
+        if not value.isdigit() or not 0 <= int(value) <= 100:
+            raise ValueError("operator_max_discount_pct must be 0..100")
+    elif key == "vip_renewal_mode":
+        if value not in ("AFTER_EXPIRY", "NOW"):
+            raise ValueError("vip_renewal_mode must be AFTER_EXPIRY or NOW")
+    elif key == "credit_priority":
+        if value not in ("EARLIEST_EXPIRY",):
+            raise ValueError("credit_priority must be EARLIEST_EXPIRY")
 
 
 def _client_ip(request: Request) -> str | None:

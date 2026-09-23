@@ -72,15 +72,21 @@ class PaymentService:
             raise InvalidState(f"Sale is {sale['status']}; payments are closed")
         if amount <= 0:
             raise ValueError("amount must be positive")
-        if method == PaymentMethod.BALANCE.value:
-            raise ValueError("BALANCE payments are enabled in P1-5 (balance ledger)")
-        if method not in (PaymentMethod.CASH.value, PaymentMethod.CARD.value):
+        if method not in (
+            PaymentMethod.CASH.value, PaymentMethod.CARD.value,
+            PaymentMethod.BALANCE.value,
+        ):
             raise ValueError(f"unknown method: {method}")
 
         applied = self._payments.sum_by_statuses(sale_id, OPEN_STATUSES)
         if applied + amount > sale["total"]:
             raise ValueError(
                 f"amount exceeds outstanding balance ({sale['total'] - applied} left)"
+            )
+
+        if method == PaymentMethod.BALANCE.value:
+            return self._balance_payment(
+                sale=sale, amount=amount, meta=meta or {},
             )
 
         provider_name = provider_name or settings.payment_provider
@@ -167,6 +173,28 @@ class PaymentService:
         return self._payments.unknown_queue()
 
     # ---- internals ----
+
+    def _balance_payment(self, *, sale: dict, amount: int, meta: dict) -> dict:
+        from gamenet.server.services.balance_service import BalanceService
+
+        balance = BalanceService(self._conn)
+        payment_id = next_number(self._conn, name="pay", prefix="PAY")
+        payment = self._payments.create(
+            payment_id=payment_id, sale_id=sale["id"],
+            method=PaymentMethod.BALANCE.value, amount=amount,
+            status=PaymentStatus.CREATED.value, provider="internal",
+            meta=json.dumps(meta or {}, ensure_ascii=True),
+        )
+        # Raises InvalidState on insufficient balance; the route rolls back
+        # the payment row with it (atomic).
+        balance.spend(
+            customer_id=sale["customer_id"], amount=amount,
+            payment_id=payment_id,
+        )
+        self._record_txn(payment, kind="CHARGE", status="PAID",
+                         message="balance debit")
+        self._transition(payment, PaymentStatus.PAID.value, reason="balance")
+        return self._payments.get(payment_id)
 
     def _automated_card_payment(
         self, *, payment_id: str, sale_id: str, amount: int,

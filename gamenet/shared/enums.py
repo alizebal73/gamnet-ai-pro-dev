@@ -97,3 +97,17 @@ class PaymentStatus(StrEnum):
     UNKNOWN = "UNKNOWN"
     REFUND_PENDING = "REFUND_PENDING"
     REFUNDED = "REFUNDED"
+
+
+class EntitlementKind(StrEnum):
+    TIME_CREDIT = "TIME_CREDIT"
+    PACKAGE_CREDIT = "PACKAGE_CREDIT"
+    VIP = "VIP"
+
+
+class EntitlementStatus(StrEnum):
+    PENDING = "PENDING"
+    ACTIVE = "ACTIVE"
+    EXPIRED = "EXPIRED"
+    CANCELLED = "CANCELLED"
+    SUSPENDED = "SUSPENDED"

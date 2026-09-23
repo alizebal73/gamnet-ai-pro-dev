@@ -225,7 +225,7 @@ def confirm_sale(
 
         def _do():
             try:
-                detail = service.confirm(sale_id)
+                detail = service.confirm(sale_id, created_by=auth.user_id)
             except NotFound as exc:
                 raise _ApiError(404, str(exc))
             except InvalidState as exc:

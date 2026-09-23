@@ -14,9 +14,9 @@
 - [x] Roles
 - [x] Permissions
 - [x] Pricing
-- [Credit Ledger]
-- [VIP]
-- [Packages]
+- [x] Credit Ledger
+- [x] VIP
+- [x] Packages
 - [x] Sales
 - [Payments]
 - [Sessions]
