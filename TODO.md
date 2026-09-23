@@ -21,7 +21,7 @@
 - [Payments]
 - [x] Sessions
 - [x] PCs
-- [Audit
+- [x] Audit
 
 ## Phase 2
 - [ ] Client Agent

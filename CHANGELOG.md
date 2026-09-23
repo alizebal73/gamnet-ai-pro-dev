@@ -21,6 +21,7 @@
 - Sales + payments: migration `005_sales_payments.sql` (sales/items/payments/transactions/events/sequences), traceable SALE-/PAY- IDs, server-priced TIME items, discounts with operator limits, payment state machine enforced server-side, provider interface (manual + deterministic mock), UNKNOWN handling with reconcile + unknown-queue, idempotent sale/payment/confirm endpoints
 - Credit + VIP + packages: migration `006_ledgers.sql`, append-only balance/entitlement ledgers, packages/VIP catalog APIs, activation on sale confirm (payment first), BALANCE payments, earliest-expiry-first consumption, VIP renewal modes + lazy lifecycle refresh, balance adjustments with permission + audit
 - Sessions + PCs: migration `007_sessions.sql` (sessions/events/consumptions/PC history, partial unique indexes for one-active rules, `session.operate` permission), full lifecycle (create/authorize/start/pause/resume/end/cancel/transfer) with server-time accounting, timeline API, PC register/maintenance/retire + device secret rotation
+- Ops + integrity: migration `008_ops.sql`, tamper-evident audit hash chain + verify API, audit reads, safe mode (middleware blocks mutations, auto-enabled on integrity failure), reconciliation engine (7 check groups) with run history, startup recovery checks
 
 ### Fixed
 - Replaced unmaintained `passlib` with direct `bcrypt` for PIN/password hashing (passlib 1.7.4 crashes with bcrypt >= 4.1, which broke customer creation with HTTP 500)

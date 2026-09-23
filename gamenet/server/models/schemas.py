@@ -460,3 +460,53 @@ class PcListResponse(BaseModel):
 class PcSecretResponse(BaseModel):
     pc_id: str
     secret: str
+
+
+class SafeModeRequest(BaseModel):
+    enabled: bool
+    reason: str | None = Field(default=None, max_length=300)
+
+
+class SafeModeResponse(BaseModel):
+    safe_mode: bool
+    reason: str
+
+
+class AuditResponse(BaseModel):
+    id: str
+    timestamp: str
+    user_id: str | None
+    role_name: str | None
+    action: str
+    entity_type: str | None
+    entity_id: str | None
+    old_value: str | None
+    new_value: str | None
+    amount: int | None
+    pc_id: str | None
+    customer_id: str | None
+    reason: str | None
+    request_id: str | None
+    ip_address: str | None
+
+
+class AuditListResponse(BaseModel):
+    items: list[AuditResponse]
+    total: int
+
+
+class AuditVerifyResponse(BaseModel):
+    checked: int
+    skipped: int
+    ok: bool
+    broken_id: str | None
+    reason: str | None
+
+
+class ReconcileResponse(BaseModel):
+    id: str
+    started_at: str
+    finished_at: str
+    status: str
+    issues: list[dict]
+    triggered_by: str | None
