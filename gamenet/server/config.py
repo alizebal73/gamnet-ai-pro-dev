@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     reconnect_interval_sec: int = 2
     auto_resume: bool = False
     one_active_session_per_customer: bool = True
-    payment_provider: str = "mock"
+    payment_provider: str = "manual"
 
     auth_token_ttl_hours: int = 12
     login_max_attempts: int = 5

@@ -18,6 +18,7 @@
 - Request-ID idempotency: migration `003_idempotency.sql`, `idempotency.idempotent_call`, `X-Request-ID` support on customer creation (replay returns stored response, payload change rejected)
 - Atomic transaction helper `db.run_in_transaction` + SQLite `busy_timeout` for concurrent writers
 - Price engine: migration `004_pricing.sql`, FLAT/PER_HOUR/MULTIPLIER rules with scope/window/PC-class matching, quote API with price snapshots, settings API (admin-only writes, audited)
+- Sales + payments: migration `005_sales_payments.sql` (sales/items/payments/transactions/events/sequences), traceable SALE-/PAY- IDs, server-priced TIME items, discounts with operator limits, payment state machine enforced server-side, provider interface (manual + deterministic mock), UNKNOWN handling with reconcile + unknown-queue, idempotent sale/payment/confirm endpoints
 
 ### Fixed
 - Replaced unmaintained `passlib` with direct `bcrypt` for PIN/password hashing (passlib 1.7.4 crashes with bcrypt >= 4.1, which broke customer creation with HTTP 500)

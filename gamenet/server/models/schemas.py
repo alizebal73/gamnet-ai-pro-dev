@@ -4,8 +4,12 @@ from datetime import datetime
 
 from gamenet.shared.enums import (
     CustomerStatus,
+    PaymentMethod,
+    PaymentStatus,
     PricingKind,
     PricingScope,
+    SaleItemKind,
+    SaleStatus,
     UserStatus,
 )
 
@@ -143,3 +147,92 @@ class SettingListResponse(BaseModel):
 
 class SettingUpdate(BaseModel):
     value: str = Field(min_length=1, max_length=500)
+
+
+class SaleItemCreate(BaseModel):
+    kind: SaleItemKind
+    label: str | None = Field(default=None, max_length=200)
+    qty: int = Field(default=1, ge=1, le=100)
+    duration_sec: int | None = Field(default=None, gt=0)
+    pc_class: str | None = Field(default=None, max_length=50)
+    unit_price: int | None = Field(default=None, ge=0)
+    ref_id: str | None = Field(default=None, max_length=50)
+
+
+class SaleCreate(BaseModel):
+    customer_id: str = Field(min_length=1)
+    items: list[SaleItemCreate] = Field(min_length=1, max_length=50)
+    discount_pct: int = Field(default=0, ge=0, le=100)
+    discount_reason: str | None = Field(default=None, max_length=300)
+
+
+class SaleItemResponse(BaseModel):
+    id: str
+    kind: SaleItemKind
+    label: str
+    qty: int
+    unit_price: int
+    total_price: int
+    duration_sec: int | None
+    pc_class: str | None
+    ref_id: str | None
+    price_snapshot: dict
+
+
+class PaymentResponse(BaseModel):
+    id: str
+    sale_id: str
+    method: PaymentMethod
+    amount: int
+    tendered: int | None
+    status: PaymentStatus
+    provider: str
+    provider_ref: str | None
+    created_at: str
+    updated_at: str
+    paid_at: str | None
+
+
+class SaleResponse(BaseModel):
+    id: str
+    customer_id: str
+    operator_user_id: str
+    status: SaleStatus
+    subtotal: int
+    discount_pct: int
+    discount_amount: int
+    discount_reason: str | None
+    total: int
+    cancel_reason: str | None
+    created_at: str
+    updated_at: str
+    confirmed_at: str | None
+    cancelled_at: str | None
+
+
+class SaleDetailResponse(SaleResponse):
+    items: list[SaleItemResponse]
+    payments: list[PaymentResponse]
+
+
+class SaleListResponse(BaseModel):
+    items: list[SaleResponse]
+    total: int
+
+
+class PaymentCreate(BaseModel):
+    method: PaymentMethod
+    amount: int = Field(gt=0)
+    provider: str | None = Field(default=None, max_length=30)
+    provider_ref: str | None = Field(default=None, max_length=100)
+    tendered: int | None = Field(default=None, ge=0)
+    meta: dict | None = None
+
+
+class SaleCancel(BaseModel):
+    reason: str = Field(min_length=1, max_length=300)
+
+
+class PaymentListResponse(BaseModel):
+    items: list[PaymentResponse]
+    total: int

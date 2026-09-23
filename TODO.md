@@ -17,7 +17,7 @@
 - [Credit Ledger]
 - [VIP]
 - [Packages]
-- [Sales]
+- [x] Sales
 - [Payments]
 - [Sessions]
 - [PCs]

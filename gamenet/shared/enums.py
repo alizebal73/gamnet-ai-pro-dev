@@ -64,3 +64,36 @@ class PricingScope(StrEnum):
     ANY = "ANY"
     WEEKDAY = "WEEKDAY"
     WEEKEND = "WEEKEND"
+
+
+class SaleStatus(StrEnum):
+    DRAFT = "DRAFT"
+    CONFIRMED = "CONFIRMED"
+    CANCELLED = "CANCELLED"
+
+
+class SaleItemKind(StrEnum):
+    TIME = "TIME"
+    VIP = "VIP"
+    PACKAGE = "PACKAGE"
+    RECHARGE = "RECHARGE"
+    FOOD = "FOOD"
+    ACCESSORY = "ACCESSORY"
+
+
+class PaymentMethod(StrEnum):
+    CASH = "CASH"
+    CARD = "CARD"
+    BALANCE = "BALANCE"
+
+
+class PaymentStatus(StrEnum):
+    CREATED = "CREATED"
+    PENDING = "PENDING"
+    PROCESSING = "PROCESSING"
+    PAID = "PAID"
+    FAILED = "FAILED"
+    CANCELLED = "CANCELLED"
+    UNKNOWN = "UNKNOWN"
+    REFUND_PENDING = "REFUND_PENDING"
+    REFUNDED = "REFUNDED"
