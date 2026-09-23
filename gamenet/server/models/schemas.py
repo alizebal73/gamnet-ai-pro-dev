@@ -215,9 +215,36 @@ class SaleResponse(BaseModel):
     shift_id: str | None = None
 
 
+class RefundCreate(BaseModel):
+    amount: int = Field(gt=0)
+    method: str = Field(min_length=1, max_length=10)
+    reason: str = Field(min_length=1, max_length=300)
+
+
+class RefundResponse(BaseModel):
+    id: str
+    sale_id: str
+    amount: int
+    method: str
+    reason: str
+    created_by: str
+    shift_id: str | None
+    created_at: str
+
+
+class RefundResultResponse(BaseModel):
+    refund: RefundResponse
+    revoked_sec: int
+    clawed_balance: int
+    vips_cancelled: list[str]
+    refunded_total: int
+
+
 class SaleDetailResponse(SaleResponse):
     items: list[SaleItemResponse]
     payments: list[PaymentResponse]
+    refunds: list[RefundResponse] = []
+    refunded_total: int = 0
 
 
 class SaleListResponse(BaseModel):

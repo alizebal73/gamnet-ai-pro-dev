@@ -8,6 +8,7 @@ from gamenet.server.db import get_connection
 from gamenet.server.models.schemas import (
     PaymentCreate,
     PaymentResponse,
+    RefundResponse,
     SaleCancel,
     SaleCreate,
     SaleDetailResponse,
@@ -69,6 +70,8 @@ def _detail_to_response(detail: dict) -> SaleDetailResponse:
             for item in detail["items"]
         ],
         payments=[_payment_to_response(p) for p in detail["payments"]],
+        refunds=[RefundResponse(**r) for r in detail.get("refunds", [])],
+        refunded_total=detail.get("refunded_total", 0),
     )
 
 

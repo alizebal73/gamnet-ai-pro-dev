@@ -33,8 +33,15 @@ class SaleService:
         sale = self._sales.get_sale(sale_id)
         if sale is None:
             raise NotFound("Sale not found")
+        from gamenet.server.repositories.refund_repository import (
+            RefundRepository,
+        )
+
         sale["items"] = self._sales.list_items(sale_id)
         sale["payments"] = self._payments.list_by_sale(sale_id)
+        refunds = RefundRepository(self._conn)
+        sale["refunds"] = refunds.list_for_sale(sale_id)
+        sale["refunded_total"] = refunds.sum_for_sale(sale_id)
         return sale
 
     def create_draft(

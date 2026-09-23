@@ -40,7 +40,7 @@
 - [ ] Quick Sale
 - [x] Shift
 - [x] Cash Reconciliation
-- [ ] Refund
+- [x] Refund
 - [x] Discount
 - [ ] Inventory
 - [ ] Reservations

@@ -12,6 +12,7 @@ from gamenet.server.api import (
     payments,
     pcs,
     pricing,
+    refunds,
     sales,
     sessions,
     shifts,
@@ -33,4 +34,5 @@ api_router.include_router(catalog.router)
 api_router.include_router(credit.router)
 api_router.include_router(sessions.router)
 api_router.include_router(shifts.router)
+api_router.include_router(refunds.router)
 api_router.include_router(pcs.router)

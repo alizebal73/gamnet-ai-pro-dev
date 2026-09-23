@@ -74,6 +74,24 @@ class EntitlementRepository:
         )
         return self.get(entitlement_id)
 
+    def list_for_sale(self, sale_id: str) -> list[dict]:
+        rows = self._conn.execute(
+            "SELECT * FROM entitlements WHERE sale_id = ? ORDER BY rowid",
+            (sale_id,),
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+    def revoke_grant(self, entitlement_id: str, seconds: int) -> dict:
+        """Shrink a grant (refunds); never below what was consumed."""
+        self._conn.execute(
+            """UPDATE entitlements
+               SET granted_sec = MAX(consumed_sec, granted_sec - ?),
+                   updated_at = ?
+               WHERE id = ?""",
+            (seconds, utc_now_iso(), entitlement_id),
+        )
+        return self.get(entitlement_id)
+
     def append_ledger(
         self,
         *,
