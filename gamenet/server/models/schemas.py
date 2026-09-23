@@ -451,6 +451,34 @@ class SessionDetailResponse(SessionResponse):
     events: list[SessionEventResponse]
     consumptions: list[SessionConsumptionResponse]
     customer_remaining_sec: int
+    expected_ends_at: str | None = None
+    expected_remaining_sec: int | None = None
+
+
+class QuickCustomerCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=120)
+    pin: str = Field(min_length=4, max_length=32)
+    mobile: str | None = Field(default=None, max_length=20)
+    gaming_name: str | None = Field(default=None, max_length=60)
+    recharge_amount: int | None = Field(default=None, gt=0)
+
+
+class QuickCustomerResponse(BaseModel):
+    customer: dict
+    sale: SaleDetailResponse | None = None
+
+
+class QuickPayment(BaseModel):
+    method: str = Field(min_length=1, max_length=10)
+    amount: int = Field(gt=0)
+
+
+class QuickSaleCreate(BaseModel):
+    customer_id: str = Field(min_length=1)
+    items: list[dict] = Field(min_length=1)
+    payments: list[QuickPayment] = Field(min_length=1)
+    discount_pct: int = Field(default=0, ge=0, le=100)
+    discount_reason: str | None = Field(default=None, max_length=300)
 
 
 class SessionListResponse(BaseModel):
@@ -787,6 +815,24 @@ class GroupEndResult(BaseModel):
     group: GroupResponse
     ended: list[str]
     skipped: list[dict]
+
+
+class CustomerLogin(BaseModel):
+    identifier: str = Field(min_length=1, max_length=60)
+    pin: str = Field(min_length=1, max_length=32)
+
+
+class CustomerLoginResponse(BaseModel):
+    customer: dict
+    token: str
+    expires_at: str
+
+
+class CustomerMeResponse(BaseModel):
+    customer: dict
+    balance: int
+    remaining_sec: int
+    active_vip: dict | None
 
 
 class PresenceResponse(BaseModel):

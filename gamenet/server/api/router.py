@@ -7,6 +7,7 @@ from gamenet.server.api import (
     auth,
     catalog,
     credit,
+    customer_auth,
     customers,
     groups,
     health,
@@ -14,6 +15,7 @@ from gamenet.server.api import (
     pcs,
     pricing,
     queue,
+    quick,
     refunds,
     inventory,
     reservations,
@@ -29,6 +31,9 @@ api_router.include_router(admin.router)
 api_router.include_router(agent.router)
 api_router.include_router(agent_ws.router)
 api_router.include_router(auth.router)
+# NOTE: customer_auth before customers so /customers/me|login|logout win
+# over /customers/{customer_id}.
+api_router.include_router(customer_auth.router)
 api_router.include_router(customers.router)
 api_router.include_router(pricing.router)
 api_router.include_router(settings.router)
@@ -44,3 +49,4 @@ api_router.include_router(pcs.router)
 api_router.include_router(reservations.router)
 api_router.include_router(queue.router)
 api_router.include_router(groups.router)
+api_router.include_router(quick.router)

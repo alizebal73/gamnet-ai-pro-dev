@@ -36,8 +36,8 @@
 
 ## Phase 3
 - [ ] Operator App
-- [ ] Quick Customer
-- [ ] Quick Sale
+- [x] Quick Customer
+- [x] Quick Sale
 - [x] Shift
 - [x] Cash Reconciliation
 - [x] Refund

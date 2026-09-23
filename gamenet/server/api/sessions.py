@@ -36,6 +36,8 @@ def _to_detail(detail: dict) -> SessionDetailResponse:
             SessionConsumptionResponse(**c) for c in detail["consumptions"]
         ],
         customer_remaining_sec=detail["customer_remaining_sec"],
+        expected_ends_at=detail.get("expected_ends_at"),
+        expected_remaining_sec=detail.get("expected_remaining_sec"),
     )
 
 
@@ -191,6 +193,17 @@ def cancel_session(
 ) -> SessionDetailResponse:
     return _transition(request, auth, "SESSION_CANCEL", session_id, "cancel",
                        reason=payload.reason)
+
+
+@router.post("/{session_id}/extend", response_model=SessionDetailResponse)
+def extend_session(
+    session_id: str,
+    request: Request,
+    auth: AuthContext = Depends(require_permission(Permission.SESSION_OPERATE)),
+    note: str | None = None,
+) -> SessionDetailResponse:
+    return _transition(request, auth, "SESSION_EXTEND", session_id,
+                       "extend", note=note)
 
 
 @router.post("/{session_id}/transfer", response_model=SessionDetailResponse)

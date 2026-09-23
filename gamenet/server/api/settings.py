@@ -21,6 +21,8 @@ KNOWN_SETTINGS = {
     "agent_lease_sec", "agent_token_ttl_hours", "agent_command_ttl_sec",
     "lease_monitor_interval_sec",
     "queue_vip_priority", "queue_expire_min",
+    "customer_token_ttl_hours", "customer_max_attempts",
+    "customer_lockout_min",
 }
 
 
@@ -64,6 +66,15 @@ def _validate_setting(key: str, value: str) -> None:
     elif key == "queue_expire_min":
         if not value.isdigit() or not 5 <= int(value) <= 1440:
             raise ValueError("queue_expire_min must be 5..1440")
+    elif key == "customer_token_ttl_hours":
+        if not value.isdigit() or not 1 <= int(value) <= 720:
+            raise ValueError("customer_token_ttl_hours must be 1..720")
+    elif key == "customer_max_attempts":
+        if not value.isdigit() or not 3 <= int(value) <= 20:
+            raise ValueError("customer_max_attempts must be 3..20")
+    elif key == "customer_lockout_min":
+        if not value.isdigit() or not 1 <= int(value) <= 1440:
+            raise ValueError("customer_lockout_min must be 1..1440")
 
 
 def _client_ip(request: Request) -> str | None:

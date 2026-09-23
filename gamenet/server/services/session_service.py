@@ -197,6 +197,44 @@ class SessionService:
                      {"session_id": session_id}, actor_user_id)
         return self.detail(session_id)
 
+    def extend(self, session_id: str, *, note: str | None = None,
+               actor_user_id: str | None = None) -> dict:
+        """Operator-confirmed continuation marker (Spec 77).
+
+        Sessions are credit-bound, not duration-bound: there is no clock
+        to push forward. Extend validates the session can continue (live
+        + remaining credit) and appends an EXTENDED timeline event, so the
+        original history is preserved and the new leg is explicit.
+        """
+        from datetime import timedelta
+
+        from gamenet.server.db import to_utc_iso
+
+        session = self._require(session_id)
+        if session["status"] not in (
+            SessionStatus.AUTHORIZED.value, SessionStatus.ACTIVE.value,
+            SessionStatus.PAUSED.value,
+        ):
+            raise InvalidState(
+                f"Session is {session['status']}, cannot extend")
+        remaining = self._credit.remaining_sec(session["customer_id"])
+        if remaining <= 0:
+            raise InvalidState(
+                "Customer has no gaming credit to extend with")
+        now = utc_now_iso()
+        self._sessions.add_event(
+            session_id=session_id, kind="EXTENDED",
+            from_status=session["status"], to_status=session["status"],
+            pc_id=session["pc_id"], actor_user_id=actor_user_id,
+            reason=(note or "").strip() or None,
+        )
+        detail = self.detail(session_id)
+        anchor = datetime.fromisoformat(now.replace("Z", "+00:00"))
+        detail["expected_ends_at"] = to_utc_iso(
+            anchor + timedelta(seconds=remaining))
+        detail["expected_remaining_sec"] = remaining
+        return detail
+
     def end(
         self,
         session_id: str,
