@@ -1,0 +1,73 @@
+Read AGENTS.md, README_AI.md, TODO.md, DECISIONS.md and every relevant document in docs/.
+
+Do not modify any code yet.
+
+Inspect the existing GameNet Pro repository and produce a complete gap analysis comparing the current implementation against the project specification.
+
+Report:
+- current architecture
+- current modules
+- current database
+- current entry points
+- current PC/client architecture
+- current payment architecture
+- current authentication
+- current session/time logic
+- current security
+- current build process
+- existing tests
+- missing functionality
+- architectural conflicts
+- migration risks
+- recommended implementation order
+
+Do not rewrite anything.
+Do not generate replacement architecture unless required.
+Wait for the repository assessment to be complete before implementation.
+
+
+Read AGENTS.md first.
+
+Then read README_AI.md, TODO.md, CHANGELOG.md, DECISIONS.md and all relevant documents in docs/.
+
+The repository contains an existing GameNet Pro application.
+
+Your job in this first step is NOT to write or modify code.
+
+First understand:
+- what GameNet Pro currently does
+- its current architecture
+- current files/modules
+- current SQLite database/schema
+- current authentication
+- current operator system
+- current session/timer logic
+- current PC management
+- current payment/VIP/package logic
+- current build/deployment process
+- current tests
+
+Then compare the existing implementation against the project specification in AGENTS.md and docs/.
+
+Produce a detailed gap analysis covering:
+1. What already works
+2. What is partially implemented
+3. What is missing
+4. Architectural problems
+5. Database migration risks
+6. Security risks
+7. Networking risks
+8. Session/time-accounting risks
+9. Payment risks
+10. Client-Agent requirements
+11. Failure/recovery gaps
+12. Recommended implementation order
+
+Do NOT rewrite anything.
+Do NOT modify code.
+Do NOT delete files.
+Do NOT create replacement architecture blindly.
+
+At the end, recommend the smallest safe next implementation task.
+
+Wait for further instruction after the analysis.

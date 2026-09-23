@@ -25,3 +25,8 @@ secrets/
 backups/
 data/
 tests/_test_gamenet.db
+# pytest cache
+.pytest_cache/
+
+# pytest cache
+.pytest_cache/
