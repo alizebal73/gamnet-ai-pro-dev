@@ -49,8 +49,8 @@
 - [x] Reports
 - [x] Alerts
 - [x] Telegram
-- [ ] PC Health
-- [Remote Commands]
+- [x] PC Health
+- [x] Remote Commands
 
 ## Phase 5
 - [ ] Failure Tests

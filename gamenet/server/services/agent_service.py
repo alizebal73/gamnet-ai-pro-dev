@@ -107,7 +107,7 @@ class AgentService:
             _last_expire_ts = now
         lease_sec = self._settings.get_int("agent_lease_sec", 45)
         health = {k: payload.get(k) for k in
-                  ("cpu_pct", "mem_pct", "disk_free_mb")
+                  ("cpu_pct", "mem_pct", "disk_free_mb", "temp_c")
                   if payload.get(k) is not None}
         rec = presence.record_heartbeat(
             token_row["pc_id"], now, lease_sec,
@@ -116,6 +116,15 @@ class AgentService:
             session_id=payload.get("session_id"),
             ip=ip, extra=health,
         )
+        if health:
+            self._conn.execute(
+                """INSERT INTO pc_health (pc_id, cpu_pct, mem_pct,
+                                          disk_free_mb, temp_c, recorded_at)
+                   VALUES (?, ?, ?, ?, ?, ?)""",
+                (token_row["pc_id"], health.get("cpu_pct"),
+                 health.get("mem_pct"), health.get("disk_free_mb"),
+                 health.get("temp_c"), utc_now_iso()),
+            )
         now_iso = utc_now_iso()
         pending = [c for c in
                    self._commands.pending_for_pc(token_row["pc_id"])

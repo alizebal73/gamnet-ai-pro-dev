@@ -4,6 +4,7 @@ from gamenet.server.api.deps import get_current_user, require_permission
 from gamenet.server.db import get_connection
 from gamenet.server.models.schemas import (
     PcCreate,
+    PcHealthResponse,
     PcListResponse,
     PcResponse,
     PcSecretResponse,
@@ -134,3 +135,30 @@ def rotate_secret(
             entity_id=pc_id, pc_id=pc_id, ip_address=_client_ip(request),
         )
         return PcSecretResponse(**result)
+
+
+@router.get("/{pc_id}/health", response_model=PcHealthResponse)
+def pc_health(
+    pc_id: str,
+    limit: int = 50,
+    auth: AuthContext = Depends(
+        require_permission(Permission.REPORTS_VIEW)),
+) -> PcHealthResponse:
+    limit = max(1, min(limit, 500))
+    with get_connection() as conn:
+        pc = PcRepository(conn).get(pc_id)
+        if pc is None:
+            raise HTTPException(status_code=404, detail="PC not found")
+        rows = conn.execute(
+            """SELECT cpu_pct, mem_pct, disk_free_mb, temp_c, recorded_at
+               FROM pc_health WHERE pc_id = ?
+               ORDER BY recorded_at DESC, id DESC LIMIT ?""",
+            (pc_id, limit),
+        ).fetchall()
+        samples = [dict(r) for r in rows]
+        return PcHealthResponse(
+            pc_id=pc_id, status=pc["status"],
+            last_seen_at=pc["last_seen_at"],
+            latest=samples[0] if samples else None,
+            samples=samples,
+        )

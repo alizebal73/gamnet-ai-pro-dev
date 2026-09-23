@@ -1,4 +1,6 @@
 import json
+import os
+import shutil
 import time
 from datetime import datetime, timezone
 
@@ -11,6 +13,7 @@ from gamenet.server.models.schemas import (
     AuditResponse,
     AuditVerifyResponse,
     CommandResponse,
+    DiagnosticsResponse,
     PresenceResponse,
     QueueCommandRequest,
     ReconcileResponse,
@@ -207,3 +210,49 @@ def reconcile_latest(
                 status_code=404, detail="No reconciliation run yet"
             )
         return ReconcileResponse(**run)
+
+
+@router.get("/diagnostics", response_model=DiagnosticsResponse)
+def diagnostics(
+    auth: AuthContext = Depends(
+        require_permission(Permission.REPORTS_VIEW)),
+) -> DiagnosticsResponse:
+    from gamenet.server.db import utc_now_iso
+
+    with get_connection() as conn:
+        usage = shutil.disk_usage(os.getcwd())
+        page_count = conn.execute("PRAGMA page_count").fetchone()[0]
+        page_size = conn.execute("PRAGMA page_size").fetchone()[0]
+        pcs_by_status = {
+            r["status"]: r["n"]
+            for r in conn.execute(
+                "SELECT status, COUNT(*) AS n FROM pcs GROUP BY status"
+            ).fetchall()
+        }
+        sessions_active = conn.execute(
+            "SELECT COUNT(*) AS n FROM sessions WHERE status = 'ACTIVE'"
+        ).fetchone()["n"]
+        pending_commands = conn.execute(
+            "SELECT COUNT(*) AS n FROM agent_commands "
+            "WHERE status IN ('PENDING', 'SENT')"
+        ).fetchone()["n"]
+        open_alerts = conn.execute(
+            "SELECT COUNT(*) AS n FROM alerts WHERE status = 'OPEN'"
+        ).fetchone()["n"]
+        recent_alerts = [
+            dict(r) for r in conn.execute(
+                "SELECT * FROM alerts ORDER BY created_at DESC LIMIT 5"
+            ).fetchall()
+        ]
+        return DiagnosticsResponse(
+            server_time=utc_now_iso(),
+            disk_free_mb=usage.free // (1024 * 1024),
+            disk_total_mb=usage.total // (1024 * 1024),
+            db_size_bytes=page_count * page_size,
+            pcs_by_status=pcs_by_status,
+            agents_connected=len(hub.connected_pcs()),
+            sessions_active=sessions_active,
+            pending_commands=pending_commands,
+            open_alerts=open_alerts,
+            recent_alerts=recent_alerts,
+        )

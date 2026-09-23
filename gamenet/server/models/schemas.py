@@ -589,6 +589,7 @@ class HeartbeatRequest(BaseModel):
     cpu_pct: float | None = None
     mem_pct: float | None = None
     disk_free_mb: int | None = None
+    temp_c: float | None = None
 
 
 class AgentCommandPayload(BaseModel):
@@ -893,6 +894,35 @@ class AlertEvaluateResponse(BaseModel):
 class TelegramTestResponse(BaseModel):
     ok: bool
     message_id: int | None = None
+
+
+class PcHealthSample(BaseModel):
+    cpu_pct: float | None
+    mem_pct: float | None
+    disk_free_mb: int | None
+    temp_c: float | None
+    recorded_at: str
+
+
+class PcHealthResponse(BaseModel):
+    pc_id: str
+    status: str
+    last_seen_at: str | None
+    latest: PcHealthSample | None
+    samples: list[PcHealthSample]
+
+
+class DiagnosticsResponse(BaseModel):
+    server_time: str
+    disk_free_mb: int
+    disk_total_mb: int
+    db_size_bytes: int
+    pcs_by_status: dict[str, int]
+    agents_connected: int
+    sessions_active: int
+    pending_commands: int
+    open_alerts: int
+    recent_alerts: list[dict]
 
 
 class PresenceResponse(BaseModel):

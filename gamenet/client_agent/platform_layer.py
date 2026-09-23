@@ -116,6 +116,13 @@ class WindowsPlatform:
 
             stats["cpu_pct"] = psutil.cpu_percent(interval=None)
             stats["mem_pct"] = psutil.virtual_memory().percent
+            try:
+                temps = psutil.sensors_temperatures()
+            except AttributeError:
+                temps = {}
+            if temps:
+                first = next(iter(temps.values()))[0]
+                stats["temp_c"] = float(first.current)
         except ImportError:
             pass
         return stats
@@ -161,6 +168,13 @@ class PosixPlatform:
 
             stats["cpu_pct"] = psutil.cpu_percent(interval=None)
             stats["mem_pct"] = psutil.virtual_memory().percent
+            try:
+                temps = psutil.sensors_temperatures()
+            except AttributeError:
+                temps = {}
+            if temps:
+                first = next(iter(temps.values()))[0]
+                stats["temp_c"] = float(first.current)
         except ImportError:
             pass
         return stats
