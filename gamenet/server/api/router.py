@@ -17,6 +17,7 @@ from gamenet.server.api import (
     queue,
     quick,
     refunds,
+    reports,
     inventory,
     reservations,
     sales,
@@ -50,3 +51,4 @@ api_router.include_router(reservations.router)
 api_router.include_router(queue.router)
 api_router.include_router(groups.router)
 api_router.include_router(quick.router)
+api_router.include_router(reports.router)

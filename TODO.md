@@ -5,7 +5,7 @@
 - [x] Document current architecture
 - [x] Document current DB
 - [x] Baseline tests
-- [ ] First Git commit
+- [x] First Git commit
 
 ## Phase 1
 - [x] Server core
@@ -46,7 +46,7 @@
 - [x] Reservations
 
 ## Phase 4
-- [ ] Reports
+- [x] Reports
 - [ ] Alerts
 - [ ] Telegram
 - [ ] PC Health

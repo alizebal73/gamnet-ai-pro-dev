@@ -835,6 +835,32 @@ class CustomerMeResponse(BaseModel):
     active_vip: dict | None
 
 
+class SalesSummaryResponse(BaseModel):
+    from_date: str | None
+    to_date: str | None
+    count: int
+    gross: int
+    discount_total: int
+    refund_total: int
+    net: int
+    by_method: dict[str, int]
+    by_operator: list[dict]
+
+
+class ShiftReportResponse(BaseModel):
+    shifts: list[dict]
+
+
+class UtilizationResponse(BaseModel):
+    pcs: list[dict]
+
+
+class InventoryReportResponse(BaseModel):
+    items: list[dict]
+    stock_value: int
+    low_stock: list[dict]
+
+
 class PresenceResponse(BaseModel):
     pc_id: str
     online: bool
