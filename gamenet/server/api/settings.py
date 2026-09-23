@@ -23,6 +23,10 @@ KNOWN_SETTINGS = {
     "queue_vip_priority", "queue_expire_min",
     "customer_token_ttl_hours", "customer_max_attempts",
     "customer_lockout_min",
+    "telegram_bot_token", "telegram_chat_id",
+    "alert_disk_min_mb", "alert_pc_offline_min",
+    "alert_shift_max_hours", "alert_login_spike",
+    "alert_login_window_min",
 }
 
 
@@ -75,6 +79,28 @@ def _validate_setting(key: str, value: str) -> None:
     elif key == "customer_lockout_min":
         if not value.isdigit() or not 1 <= int(value) <= 1440:
             raise ValueError("customer_lockout_min must be 1..1440")
+    elif key == "telegram_bot_token":
+        if len(value) > 200:
+            raise ValueError("telegram_bot_token too long (max 200)")
+    elif key == "telegram_chat_id":
+        if len(value) > 64:
+            raise ValueError("telegram_chat_id too long (max 64)")
+    elif key == "alert_disk_min_mb":
+        if not value.isdigit() or not 100 <= int(value) <= 1000000:
+            raise ValueError("alert_disk_min_mb must be 100..1000000")
+    elif key == "alert_pc_offline_min":
+        if not value.isdigit() or not 1 <= int(value) <= 1440:
+            raise ValueError("alert_pc_offline_min must be 1..1440")
+    elif key == "alert_shift_max_hours":
+        if not value.isdigit() or not 1 <= int(value) <= 168:
+            raise ValueError("alert_shift_max_hours must be 1..168")
+    elif key == "alert_login_spike":
+        if not value.isdigit() or not 2 <= int(value) <= 1000:
+            raise ValueError("alert_login_spike must be 2..1000")
+    elif key == "alert_login_window_min":
+        if not value.isdigit() or not 1 <= int(value) <= 1440:
+            raise ValueError(
+                "alert_login_window_min must be 1..1440")
 
 
 def _client_ip(request: Request) -> str | None:

@@ -47,8 +47,8 @@
 
 ## Phase 4
 - [x] Reports
-- [ ] Alerts
-- [ ] Telegram
+- [x] Alerts
+- [x] Telegram
 - [ ] PC Health
 - [Remote Commands]
 

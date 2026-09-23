@@ -32,6 +32,7 @@
 - Capacity: migration `013_capacity.sql` (reservations + queue + session groups), reservation booking with overlap detection + cancel/no-show/seat-into-session, FIFO queue with priority + opt-in VIP boost + expiry, group sessions with shared end-all (separate payments preserved)
 - Quick wins: customer PIN login with lockout + token sessions (`/customers/login|me|logout`), session extend markers (Spec 77), one-tap quick-customer/quick-sale with idempotency, stdlib operator shell (`python -m gamenet.operator_app`)
 - Reports: sales summary (gross/discounts/refunds/net, by method + operator), shift report, per-PC utilization, inventory valuation + low stock, audited CSV export (sales/shifts/sessions/inventory)
+- Alerts: rule evaluation (server disk, PC offline, stuck shifts, login spikes, low stock) with dedupe + auto-resolve, ack/resolve inbox, Telegram notifications for new warnings
 
 ### Fixed
 - Replaced unmaintained `passlib` with direct `bcrypt` for PIN/password hashing (passlib 1.7.4 crashes with bcrypt >= 4.1, which broke customer creation with HTTP 500)

@@ -150,7 +150,10 @@ class SettingListResponse(BaseModel):
 
 
 class SettingUpdate(BaseModel):
-    value: str = Field(min_length=1, max_length=500)
+    # Empty string is allowed so optional settings (e.g. Telegram keys)
+    # can be cleared; per-key validators still reject empties where a
+    # value is required.
+    value: str = Field(min_length=0, max_length=500)
 
 
 class SaleItemCreate(BaseModel):
@@ -859,6 +862,37 @@ class InventoryReportResponse(BaseModel):
     items: list[dict]
     stock_value: int
     low_stock: list[dict]
+
+
+class AlertResponse(BaseModel):
+    id: str
+    severity: str
+    source: str
+    title: str
+    detail: str | None
+    entity_type: str | None
+    entity_id: str | None
+    status: str
+    created_at: str
+    acked_at: str | None
+    acked_by: str | None
+    resolved_at: str | None
+
+
+class AlertListResponse(BaseModel):
+    items: list[AlertResponse]
+    total: int
+
+
+class AlertEvaluateResponse(BaseModel):
+    created: list[AlertResponse]
+    resolved: list[str]
+    notified: int
+
+
+class TelegramTestResponse(BaseModel):
+    ok: bool
+    message_id: int | None = None
 
 
 class PresenceResponse(BaseModel):
