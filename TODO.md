@@ -10,9 +10,9 @@
 ## Phase 1
 - [x] Server core
 - [x] Customer
-- [ ] Authentication
-- [ ] Roles
-- [ ] Permissions
+- [x] Authentication
+- [x] Roles
+- [x] Permissions
 - [Pricing]
 - [Credit Ledger]
 - [VIP]

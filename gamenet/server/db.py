@@ -6,8 +6,15 @@ from pathlib import Path
 from gamenet.server.config import settings
 
 
+def to_utc_iso(value: datetime) -> str:
+    """Format a datetime as UTC ISO-8601 with Z suffix (Master Spec 147-148)."""
+    if value.tzinfo is None:
+        value = value.replace(tzinfo=UTC)
+    return value.astimezone(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
 def utc_now_iso() -> str:
-    return datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    return to_utc_iso(datetime.now(UTC))
 
 
 def ensure_data_dir() -> None:

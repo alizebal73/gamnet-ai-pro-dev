@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 
-from gamenet.shared.enums import CustomerStatus
+from gamenet.shared.enums import CustomerStatus, UserStatus
 
 
 class HealthResponse(BaseModel):
@@ -31,3 +31,28 @@ class CustomerResponse(BaseModel):
 class CustomerListResponse(BaseModel):
     items: list[CustomerResponse]
     total: int
+
+
+class LoginRequest(BaseModel):
+    username: str = Field(min_length=1, max_length=100)
+    password: str = Field(min_length=1, max_length=200)
+
+
+class AuthUserResponse(BaseModel):
+    id: str
+    username: str
+    display_name: str | None
+    status: UserStatus
+    roles: list[str]
+
+
+class LoginResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    expires_at: str
+    user: AuthUserResponse
+
+
+class MeResponse(BaseModel):
+    user: AuthUserResponse
+    permissions: list[str]

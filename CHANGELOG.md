@@ -9,6 +9,12 @@
 - SQLite migration system and migration `001_initial.sql`
 - Customer create/search/get API with bcrypt PIN hashing
 - Test suite (`tests/test_health.py`, `tests/test_customers.py`)
+- Operator authentication: migration `002_auth.sql` (permissions, role_permissions, auth_sessions, login lockout columns) with seeded roles/permissions
+- Auth API (`/auth/login`, `/auth/logout`, `/auth/me`) with opaque revocable tokens, brute-force lockout, and login auditing
+- Server-side permission enforcement (`require_permission`) — customer endpoints now require `customer.create`/`customer.view`
+- Append-only audit writer (`audit_service.log_audit`) wired into auth + customer creation
+- Admin CLI: `python -m gamenet.server.cli create-admin`
+- Auth test suite (`tests/test_auth.py`, 10 tests)
 
 ### Fixed
 - Replaced unmaintained `passlib` with direct `bcrypt` for PIN/password hashing (passlib 1.7.4 crashes with bcrypt >= 4.1, which broke customer creation with HTTP 500)

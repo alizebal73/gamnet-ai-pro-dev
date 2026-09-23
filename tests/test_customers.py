@@ -1,4 +1,4 @@
-def test_create_and_get_customer(client):
+def test_create_and_get_customer(client, owner_headers):
     create = client.post(
         "/api/v1/customers",
         json={
@@ -7,6 +7,7 @@ def test_create_and_get_customer(client):
             "gaming_name": "AliGamer",
             "pin": "1234",
         },
+        headers=owner_headers,
     )
     assert create.status_code == 201
     data = create.json()
@@ -14,17 +15,25 @@ def test_create_and_get_customer(client):
     assert data["customer_number"] >= 1040
     assert data["status"] == "ACTIVE"
 
-    by_number = client.get(f"/api/v1/customers/by-number/{data['customer_number']}")
+    by_number = client.get(
+        f"/api/v1/customers/by-number/{data['customer_number']}",
+        headers=owner_headers,
+    )
     assert by_number.status_code == 200
     assert by_number.json()["id"] == data["id"]
 
 
-def test_search_customer(client):
+def test_search_customer(client, owner_headers):
     client.post(
         "/api/v1/customers",
         json={"name": "Search Me", "pin": "5678"},
+        headers=owner_headers,
     )
-    response = client.get("/api/v1/customers/search", params={"q": "Search"})
+    response = client.get(
+        "/api/v1/customers/search",
+        params={"q": "Search"},
+        headers=owner_headers,
+    )
     assert response.status_code == 200
     body = response.json()
     assert body["total"] >= 1

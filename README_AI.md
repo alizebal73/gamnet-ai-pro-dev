@@ -34,6 +34,17 @@ python -m gamenet.server.main
 
 Health check: `GET http://127.0.0.1:8765/api/v1/health`
 
+## First Run — Create Owner Account
+
+```powershell
+copy .env.example .env
+python -m gamenet.server.cli create-admin --username admin
+python -m gamenet.server.main
+```
+
+Login: `POST /api/v1/auth/login` with `{"username": "...", "password": "..."}`.
+Use the returned token as `Authorization: Bearer <token>` on protected routes.
+
 ## Implementation Rules
 
 - Business logic in `gamenet/server/services/`, not in API routes.

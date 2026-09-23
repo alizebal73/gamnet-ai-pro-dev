@@ -25,5 +25,9 @@ class Settings(BaseSettings):
     one_active_session_per_customer: bool = True
     payment_provider: str = "mock"
 
+    auth_token_ttl_hours: int = 12
+    login_max_attempts: int = 5
+    login_lockout_minutes: int = 15
+
 
 settings = Settings()
