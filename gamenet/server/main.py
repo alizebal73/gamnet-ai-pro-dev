@@ -30,6 +30,10 @@ class SafeModeMiddleware(BaseHTTPMiddleware):
             request.method not in SAFE_METHODS
             and request.url.path not in SAFE_MODE_ALLOWLIST
             and not request.url.path.startswith("/api/v1/auth/")
+            # The agent channel is sync traffic (auth/heartbeat/ACK), not a
+            # financial mutation: it must stay live in safe mode so PCs keep
+            # reporting and can still receive LOCK commands.
+            and not request.url.path.startswith("/api/v1/agent/")
         ):
             with get_connection() as conn:
                 repo = SettingsRepository(conn)

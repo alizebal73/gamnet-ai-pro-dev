@@ -123,3 +123,21 @@ class SessionStatus(StrEnum):
     CANCELLED = "CANCELLED"
     INTERRUPTED = "INTERRUPTED"
     CONNECTION_LOST = "CONNECTION_LOST"
+
+
+class AgentCommandType(StrEnum):
+    LOCK = "LOCK"
+    UNLOCK = "UNLOCK"
+    MESSAGE = "MESSAGE"
+    END_SESSION = "END_SESSION"
+    SHUTDOWN = "SHUTDOWN"
+    RESTART = "RESTART"
+    SYNC = "SYNC"
+
+
+class AgentCommandStatus(StrEnum):
+    PENDING = "PENDING"
+    SENT = "SENT"
+    ACKED = "ACKED"
+    FAILED = "FAILED"
+    EXPIRED = "EXPIRED"

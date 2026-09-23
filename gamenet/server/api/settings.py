@@ -18,6 +18,7 @@ router = APIRouter(prefix="/settings", tags=["settings"])
 KNOWN_SETTINGS = {
     "store_name", "base_currency_unit", "price_per_hour", "weekend_days",
     "operator_max_discount_pct", "vip_renewal_mode", "credit_priority",
+    "agent_lease_sec", "agent_token_ttl_hours", "agent_command_ttl_sec",
 }
 
 
@@ -43,6 +44,15 @@ def _validate_setting(key: str, value: str) -> None:
     elif key == "credit_priority":
         if value not in ("EARLIEST_EXPIRY",):
             raise ValueError("credit_priority must be EARLIEST_EXPIRY")
+    elif key == "agent_lease_sec":
+        if not value.isdigit() or not 5 <= int(value) <= 600:
+            raise ValueError("agent_lease_sec must be 5..600")
+    elif key == "agent_token_ttl_hours":
+        if not value.isdigit() or not 1 <= int(value) <= 720:
+            raise ValueError("agent_token_ttl_hours must be 1..720")
+    elif key == "agent_command_ttl_sec":
+        if not value.isdigit() or not 10 <= int(value) <= 86400:
+            raise ValueError("agent_command_ttl_sec must be 10..86400")
 
 
 def _client_ip(request: Request) -> str | None:

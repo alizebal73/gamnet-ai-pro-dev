@@ -510,3 +510,71 @@ class ReconcileResponse(BaseModel):
     status: str
     issues: list[dict]
     triggered_by: str | None
+
+
+class AgentAuthRequest(BaseModel):
+    device_code: str = Field(min_length=1)
+    secret: str = Field(min_length=1)
+    agent_version: str | None = Field(default=None, max_length=32)
+
+
+class AgentAuthResponse(BaseModel):
+    pc_id: str
+    token: str
+    expires_at: str
+
+
+class HeartbeatRequest(BaseModel):
+    session_id: str | None = None
+    agent_version: str | None = Field(default=None, max_length=32)
+    cpu_pct: float | None = None
+    mem_pct: float | None = None
+    disk_free_mb: int | None = None
+
+
+class AgentCommandPayload(BaseModel):
+    id: str
+    type: str
+    payload: dict = {}
+
+
+class HeartbeatResponse(BaseModel):
+    server_time: str
+    lease_sec: int
+    lease_until: str
+    commands: list[AgentCommandPayload] = []
+
+
+class CommandAckRequest(BaseModel):
+    ok: bool = True
+    result: dict | None = None
+
+
+class CommandResponse(BaseModel):
+    id: str
+    pc_id: str
+    type: str
+    status: str
+    created_at: str
+    sent_at: str | None
+    acked_at: str | None
+    expires_at: str
+    result: dict | None = None
+
+    @classmethod
+    def from_row(cls, row: dict) -> "CommandResponse":
+        import json as _json
+
+        raw = row.get("result_json")
+        return cls(
+            id=row["id"], pc_id=row["pc_id"], type=row["type"],
+            status=row["status"], created_at=row["created_at"],
+            sent_at=row.get("sent_at"), acked_at=row.get("acked_at"),
+            expires_at=row["expires_at"],
+            result=_json.loads(raw) if raw else None,
+        )
+
+
+class QueueCommandRequest(BaseModel):
+    type: str = Field(min_length=1, max_length=32)
+    payload: dict = {}

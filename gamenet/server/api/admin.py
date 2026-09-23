@@ -6,13 +6,17 @@ from gamenet.server.models.schemas import (
     AuditListResponse,
     AuditResponse,
     AuditVerifyResponse,
+    CommandResponse,
+    QueueCommandRequest,
     ReconcileResponse,
     SafeModeRequest,
     SafeModeResponse,
 )
 from gamenet.server.repositories.settings_repository import SettingsRepository
+from gamenet.server.services.agent_service import AgentService
 from gamenet.server.services.audit_service import log_audit, verify_audit_chain
 from gamenet.server.services.auth_service import AuthContext
+from gamenet.server.services.errors import NotFound
 from gamenet.server.workers.reconciliation import latest_run, run_reconciliation
 from gamenet.shared.enums import Permission
 
@@ -101,6 +105,48 @@ def run_reconcile(
             ip_address=_client_ip(request),
         )
         return ReconcileResponse(**run)
+
+
+@router.post("/pcs/{pc_id}/commands", response_model=CommandResponse)
+def queue_command(
+    pc_id: str,
+    payload: QueueCommandRequest,
+    request: Request,
+    auth: AuthContext = Depends(
+        require_permission(Permission.REMOTE_EXECUTE)
+    ),
+) -> CommandResponse:
+    with get_connection() as conn:
+        try:
+            cmd = AgentService(conn).queue_command(
+                pc_id, payload.type, payload.payload, auth.user_id
+            )
+        except NotFound as exc:
+            raise HTTPException(status_code=404, detail=str(exc))
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc))
+        log_audit(
+            conn, action="AGENT_COMMAND", user_id=auth.user_id,
+            role_name=",".join(auth.roles), entity_type="agent_command",
+            entity_id=cmd["id"], new_value=cmd["type"], pc_id=pc_id,
+            ip_address=_client_ip(request),
+        )
+        return CommandResponse.from_row(cmd)
+
+
+@router.get("/pcs/{pc_id}/commands", response_model=list[CommandResponse])
+def list_commands(
+    pc_id: str,
+    auth: AuthContext = Depends(
+        require_permission(Permission.REMOTE_EXECUTE)
+    ),
+) -> list[CommandResponse]:
+    with get_connection() as conn:
+        try:
+            cmds = AgentService(conn).list_commands(pc_id)
+        except NotFound as exc:
+            raise HTTPException(status_code=404, detail=str(exc))
+        return [CommandResponse.from_row(c) for c in cmds]
 
 
 @router.get("/reconcile/latest", response_model=ReconcileResponse)

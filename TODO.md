@@ -25,13 +25,13 @@
 
 ## Phase 2
 - [ ] Client Agent
-- [ ] Heartbeat
+- [x] Heartbeat
 - [ ] Lease
 - [ ] Pause on disconnect
 - [ ] Reconnect
 - [ ] Sync
 - [ ] Manual Resume
-- [ ] Session Transfer
+- [x] Session Transfer
 - [ ] PC Lock
 
 ## Phase 3

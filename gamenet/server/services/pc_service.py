@@ -71,6 +71,13 @@ class PcService:
         pc = self._pcs.get(pc_id)
         if pc is None:
             raise NotFound("PC not found")
+        from gamenet.server.repositories.agent_repository import (
+            AgentTokenRepository,
+        )
+
         secret = generate_token()
         self._pcs.set_device_secret(pc_id, hash_token(secret))
+        # Rotating the secret revokes every agent token: a leaked old
+        # secret (or a cloned agent) must not stay connected.
+        AgentTokenRepository(self._conn).revoke_for_pc(pc_id)
         return {"pc_id": pc_id, "secret": secret}
