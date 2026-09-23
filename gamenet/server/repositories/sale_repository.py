@@ -76,6 +76,12 @@ class SaleRepository:
         )
         return self.get_sale(sale_id)
 
+    def attach_shift(self, sale_id: str, shift_id: str) -> None:
+        self._conn.execute(
+            "UPDATE sales SET shift_id = ? WHERE id = ?",
+            (shift_id, sale_id),
+        )
+
     def add_item(
         self,
         *,

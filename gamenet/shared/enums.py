@@ -53,6 +53,17 @@ class Permission(StrEnum):
     BACKUP_MANAGE = "backup.manage"
     REMOTE_EXECUTE = "remote.execute"
     SESSION_OPERATE = "session.operate"
+    SHIFT_MANAGE = "shift.manage"
+
+
+class ShiftStatus(StrEnum):
+    OPEN = "OPEN"
+    CLOSED = "CLOSED"
+
+
+class CashMovementKind(StrEnum):
+    IN = "IN"
+    OUT = "OUT"
 
 
 class PricingKind(StrEnum):

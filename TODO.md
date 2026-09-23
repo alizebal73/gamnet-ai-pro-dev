@@ -38,10 +38,10 @@
 - [ ] Operator App
 - [ ] Quick Customer
 - [ ] Quick Sale
-- [ ] Shift
-- [ ] Cash Reconciliation
+- [x] Shift
+- [x] Cash Reconciliation
 - [ ] Refund
-- [ ] Discount
+- [x] Discount
 - [ ] Inventory
 - [ ] Reservations
 

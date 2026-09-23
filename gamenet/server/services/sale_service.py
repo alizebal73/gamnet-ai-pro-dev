@@ -95,6 +95,14 @@ class SaleService:
                 f"Paid {paid} of {sale['total']}; sale is not fully paid"
             )
         self._sales.set_status(sale_id, SaleStatus.CONFIRMED.value)
+        # Attach to the open shift (if any) so the drawer stays complete.
+        from gamenet.server.repositories.shift_repository import (
+            ShiftRepository,
+        )
+
+        open_shift = ShiftRepository(self._conn).current_open()
+        if open_shift is not None:
+            self._sales.attach_shift(sale_id, open_shift["id"])
         items = self._sales.list_items(sale_id)
         grant_for_sale(self._conn, sale, items, created_by=created_by)
         return self.detail(sale_id)

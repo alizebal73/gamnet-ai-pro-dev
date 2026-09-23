@@ -212,6 +212,7 @@ class SaleResponse(BaseModel):
     updated_at: str
     confirmed_at: str | None
     cancelled_at: str | None
+    shift_id: str | None = None
 
 
 class SaleDetailResponse(SaleResponse):
@@ -579,6 +580,49 @@ class CommandResponse(BaseModel):
 class QueueCommandRequest(BaseModel):
     type: str = Field(min_length=1, max_length=32)
     payload: dict = {}
+
+
+class ShiftOpenRequest(BaseModel):
+    opening_float: int = Field(default=0, ge=0)
+
+
+class ShiftCloseRequest(BaseModel):
+    counted_cash: int = Field(ge=0)
+    note: str | None = Field(default=None, max_length=500)
+
+
+class CashMovementRequest(BaseModel):
+    kind: str = Field(min_length=1, max_length=8)
+    amount: int = Field(gt=0)
+    reason: str = Field(min_length=1, max_length=300)
+
+
+class CashMovementResponse(BaseModel):
+    id: str
+    shift_id: str
+    kind: str
+    amount: int
+    reason: str
+    created_by: str
+    created_at: str
+
+
+class ShiftResponse(BaseModel):
+    id: str
+    status: str
+    opened_by: str
+    opened_at: str
+    closed_by: str | None
+    closed_at: str | None
+    opening_float: int
+    expected_cash: int | None
+    counted_cash: int | None
+    variance: int | None
+    note: str | None
+    cash_paid: int = 0
+    moved_in: int = 0
+    moved_out: int = 0
+    expected_live: int | None = None
 
 
 class PresenceResponse(BaseModel):
