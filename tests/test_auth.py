@@ -148,7 +148,7 @@ def test_viewer_forbidden_on_customers(client, make_user_with_token):
 def test_owner_has_all_permissions(client, make_user_with_token):
     headers = make_user_with_token(RoleName.OWNER.value)
     me = client.get("/api/v1/auth/me", headers=headers).json()
-    assert len(me["permissions"]) == 18
+    assert len(me["permissions"]) == 19  # 18 base + session.operate
     r = client.post(
         "/api/v1/customers",
         json={"name": "Yes", "pin": "1234"},

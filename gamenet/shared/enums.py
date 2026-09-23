@@ -52,6 +52,7 @@ class Permission(StrEnum):
     SETTINGS_EDIT = "settings.edit"
     BACKUP_MANAGE = "backup.manage"
     REMOTE_EXECUTE = "remote.execute"
+    SESSION_OPERATE = "session.operate"
 
 
 class PricingKind(StrEnum):
@@ -111,3 +112,14 @@ class EntitlementStatus(StrEnum):
     EXPIRED = "EXPIRED"
     CANCELLED = "CANCELLED"
     SUSPENDED = "SUSPENDED"
+
+
+class SessionStatus(StrEnum):
+    CREATED = "CREATED"
+    AUTHORIZED = "AUTHORIZED"
+    ACTIVE = "ACTIVE"
+    PAUSED = "PAUSED"
+    ENDED = "ENDED"
+    CANCELLED = "CANCELLED"
+    INTERRUPTED = "INTERRUPTED"
+    CONNECTION_LOST = "CONNECTION_LOST"

@@ -19,8 +19,8 @@
 - [x] Packages
 - [x] Sales
 - [Payments]
-- [Sessions]
-- [PCs]
+- [x] Sessions
+- [x] PCs
 - [Audit
 
 ## Phase 2

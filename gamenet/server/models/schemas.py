@@ -8,10 +8,12 @@ from gamenet.shared.enums import (
     EntitlementStatus,
     PaymentMethod,
     PaymentStatus,
+    PCStatus,
     PricingKind,
     PricingScope,
     SaleItemKind,
     SaleStatus,
+    SessionStatus,
     UserStatus,
 )
 
@@ -357,3 +359,104 @@ class BalanceResponse(BaseModel):
 class BalanceLedgerResponse(BaseModel):
     items: list[BalanceLedgerEntry]
     total: int
+
+
+class SessionCreate(BaseModel):
+    customer_id: str = Field(min_length=1)
+    pc_id: str | None = None
+
+
+class SessionAuthorize(BaseModel):
+    pc_id: str | None = None
+
+
+class SessionPause(BaseModel):
+    reason: str | None = Field(default=None, max_length=300)
+
+
+class SessionEnd(BaseModel):
+    reason: str | None = Field(default=None, max_length=300)
+
+
+class SessionTransfer(BaseModel):
+    new_pc_id: str = Field(min_length=1)
+    reason: str = Field(min_length=1, max_length=300)
+
+
+class SessionEventResponse(BaseModel):
+    id: str
+    kind: str
+    from_status: str | None
+    to_status: str | None
+    pc_id: str | None
+    actor_user_id: str | None
+    reason: str | None
+    created_at: str
+
+
+class SessionConsumptionResponse(BaseModel):
+    id: str
+    entitlement_id: str | None
+    seconds: int
+    period_start: str
+    period_end: str
+    kind: str
+    created_at: str
+
+
+class SessionResponse(BaseModel):
+    id: str
+    customer_id: str
+    pc_id: str | None
+    status: SessionStatus
+    created_by: str | None
+    started_at: str | None
+    last_accounted_at: str | None
+    ended_at: str | None
+    ended_reason: str | None
+    total_consumed_sec: int
+    created_at: str
+    updated_at: str
+
+
+class SessionDetailResponse(SessionResponse):
+    events: list[SessionEventResponse]
+    consumptions: list[SessionConsumptionResponse]
+    customer_remaining_sec: int
+
+
+class SessionListResponse(BaseModel):
+    items: list[SessionResponse]
+    total: int
+
+
+class PcCreate(BaseModel):
+    device_code: str = Field(min_length=1, max_length=50)
+    display_name: str = Field(min_length=1, max_length=100)
+
+
+class PcUpdate(BaseModel):
+    display_name: str | None = Field(default=None, min_length=1, max_length=100)
+    status: str | None = None
+    reason: str | None = Field(default=None, max_length=300)
+
+
+class PcResponse(BaseModel):
+    id: str
+    device_code: str
+    display_name: str
+    status: PCStatus
+    agent_version: str | None
+    last_seen_at: str | None
+    created_at: str
+    updated_at: str
+
+
+class PcListResponse(BaseModel):
+    items: list[PcResponse]
+    total: int
+
+
+class PcSecretResponse(BaseModel):
+    pc_id: str
+    secret: str
