@@ -23,6 +23,7 @@
 - Sessions + PCs: migration `007_sessions.sql` (sessions/events/consumptions/PC history, partial unique indexes for one-active rules, `session.operate` permission), full lifecycle (create/authorize/start/pause/resume/end/cancel/transfer) with server-time accounting, timeline API, PC register/maintenance/retire + device secret rotation
 - Ops + integrity: migration `008_ops.sql`, tamper-evident audit hash chain + verify API, audit reads, safe mode (middleware blocks mutations, auto-enabled on integrity failure), reconciliation engine (7 check groups) with run history, startup recovery checks
 - Agent channel core: migration `009_comms.sql` (agent tokens, command queue), device auth with revocable tokens, heartbeat with piggybacked commands + lease grant, in-memory presence registry with periodic DB flush, ACK flow, command expiry, operator queue/list APIs (remote.execute), agent channel stays live in safe mode
+- WebSocket gateway: agent socket endpoint with query-token auth, HELLO/HEARTBEAT/ACK/PING protocol, instant command push on queue (offline PCs fall back to heartbeat pickup), presence snapshot API with socket state
 
 ### Fixed
 - Replaced unmaintained `passlib` with direct `bcrypt` for PIN/password hashing (passlib 1.7.4 crashes with bcrypt >= 4.1, which broke customer creation with HTTP 500)

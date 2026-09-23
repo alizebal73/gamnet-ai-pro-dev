@@ -578,3 +578,14 @@ class CommandResponse(BaseModel):
 class QueueCommandRequest(BaseModel):
     type: str = Field(min_length=1, max_length=32)
     payload: dict = {}
+
+
+class PresenceResponse(BaseModel):
+    pc_id: str
+    online: bool
+    last_seen: str
+    lease_until: str
+    session_id: str | None = None
+    agent_version: str | None = None
+    socket_connected: bool = False
+    ip: str | None = None

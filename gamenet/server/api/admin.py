@@ -1,3 +1,7 @@
+import json
+import time
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
 from gamenet.server.api.deps import require_permission
@@ -7,10 +11,15 @@ from gamenet.server.models.schemas import (
     AuditResponse,
     AuditVerifyResponse,
     CommandResponse,
+    PresenceResponse,
     QueueCommandRequest,
     ReconcileResponse,
     SafeModeRequest,
     SafeModeResponse,
+)
+from gamenet.server.realtime import hub, presence
+from gamenet.server.repositories.agent_repository import (
+    AgentCommandRepository,
 )
 from gamenet.server.repositories.settings_repository import SettingsRepository
 from gamenet.server.services.agent_service import AgentService
@@ -131,7 +140,20 @@ def queue_command(
             entity_id=cmd["id"], new_value=cmd["type"], pc_id=pc_id,
             ip_address=_client_ip(request),
         )
-        return CommandResponse.from_row(cmd)
+    # Committed above: if the PC has a live socket, push instantly instead
+    # of waiting for its next heartbeat (offline PCs pick it up via
+    # heartbeat, so delivery does not depend on the socket).
+    pushed = hub.push_sync(pc_id, {
+        "type": "COMMAND",
+        "command": {"id": cmd["id"], "type": cmd["type"],
+                    "payload": json.loads(cmd["payload_json"] or "{}")},
+    })
+    if pushed:
+        with get_connection() as conn:
+            AgentCommandRepository(conn).mark_sent([cmd["id"]])
+        cmd = {**cmd, "status": "SENT",
+               "sent_at": cmd["created_at"]}
+    return CommandResponse.from_row(cmd)
 
 
 @router.get("/pcs/{pc_id}/commands", response_model=list[CommandResponse])
@@ -147,6 +169,29 @@ def list_commands(
         except NotFound as exc:
             raise HTTPException(status_code=404, detail=str(exc))
         return [CommandResponse.from_row(c) for c in cmds]
+
+
+@router.get("/presence", response_model=list[PresenceResponse])
+def presence_list(
+    auth: AuthContext = Depends(
+        require_permission(Permission.REPORTS_VIEW)
+    ),
+) -> list[PresenceResponse]:
+    now = time.time()
+
+    def _iso(ts: float) -> str:
+        return datetime.fromtimestamp(ts, tz=timezone.utc).isoformat(
+            timespec="seconds")
+
+    return [
+        PresenceResponse(
+            pc_id=r.pc_id, online=r.lease_until > now,
+            last_seen=_iso(r.last_seen), lease_until=_iso(r.lease_until),
+            session_id=r.session_id, agent_version=r.agent_version,
+            socket_connected=hub.is_connected(r.pc_id), ip=r.ip,
+        )
+        for r in presence.snapshot()
+    ]
 
 
 @router.get("/reconcile/latest", response_model=ReconcileResponse)
