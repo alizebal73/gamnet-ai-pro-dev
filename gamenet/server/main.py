@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 import uvicorn
 from fastapi import FastAPI
 
@@ -6,18 +8,21 @@ from gamenet.server.api.router import api_router
 from gamenet.server.config import settings
 from gamenet.server.db import run_migrations
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    run_migrations()
+    yield
+
+
 app = FastAPI(
     title="GameNet Pro Server",
     version=__version__,
     description="Game-net management server — Source of Truth",
+    lifespan=lifespan,
 )
 
 app.include_router(api_router)
-
-
-@app.on_event("startup")
-def on_startup() -> None:
-    run_migrations()
 
 
 def main() -> None:
