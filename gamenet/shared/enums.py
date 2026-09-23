@@ -52,3 +52,15 @@ class Permission(StrEnum):
     SETTINGS_EDIT = "settings.edit"
     BACKUP_MANAGE = "backup.manage"
     REMOTE_EXECUTE = "remote.execute"
+
+
+class PricingKind(StrEnum):
+    PER_HOUR = "PER_HOUR"
+    FLAT = "FLAT"
+    MULTIPLIER = "MULTIPLIER"
+
+
+class PricingScope(StrEnum):
+    ANY = "ANY"
+    WEEKDAY = "WEEKDAY"
+    WEEKEND = "WEEKEND"

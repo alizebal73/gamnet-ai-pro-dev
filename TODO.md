@@ -13,7 +13,7 @@
 - [x] Authentication
 - [x] Roles
 - [x] Permissions
-- [Pricing]
+- [x] Pricing
 - [Credit Ledger]
 - [VIP]
 - [Packages]
