@@ -25,6 +25,7 @@
 - Agent channel core: migration `009_comms.sql` (agent tokens, command queue), device auth with revocable tokens, heartbeat with piggybacked commands + lease grant, in-memory presence registry with periodic DB flush, ACK flow, command expiry, operator queue/list APIs (remote.execute), agent channel stays live in safe mode
 - WebSocket gateway: agent socket endpoint with query-token auth, HELLO/HEARTBEAT/ACK/PING protocol, instant command push on queue (offline PCs fall back to heartbeat pickup), presence snapshot API with socket state
 - Lease + reconnect: session lifecycle emits LOCK/UNLOCK commands (start/pause/resume/end/cancel/transfer), lease monitor auto-pauses expired sessions with LINK_LOST + LOCK (idempotent per outage, daemon thread in lifespan), heartbeat carries live-session sync for reconnecting agents, manual resume flow delivers UNLOCK
+- Client agent: stdlib-only headless agent (config, REST transport, OS platform layer with Windows/POSIX/Mock, heartbeat loop with backoff + re-auth, command dispatch with pending-ACK retry queue, crash-safe state.json, boot-locked with unlock-only-via-command rule, session-sync reconciliation)
 
 ### Fixed
 - Replaced unmaintained `passlib` with direct `bcrypt` for PIN/password hashing (passlib 1.7.4 crashes with bcrypt >= 4.1, which broke customer creation with HTTP 500)

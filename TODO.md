@@ -24,7 +24,7 @@
 - [x] Audit
 
 ## Phase 2
-- [ ] Client Agent
+- [x] Client Agent
 - [x] Heartbeat
 - [x] Lease
 - [x] Pause on disconnect
