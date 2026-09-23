@@ -66,6 +66,27 @@ class CashMovementKind(StrEnum):
     OUT = "OUT"
 
 
+class ReservationStatus(StrEnum):
+    BOOKED = "BOOKED"
+    SEATED = "SEATED"
+    CANCELLED = "CANCELLED"
+    EXPIRED = "EXPIRED"
+    NO_SHOW = "NO_SHOW"
+
+
+class QueueEntryStatus(StrEnum):
+    WAITING = "WAITING"
+    CALLED = "CALLED"
+    SEATED = "SEATED"
+    CANCELLED = "CANCELLED"
+    EXPIRED = "EXPIRED"
+
+
+class SessionGroupStatus(StrEnum):
+    OPEN = "OPEN"
+    CLOSED = "CLOSED"
+
+
 class PricingKind(StrEnum):
     PER_HOUR = "PER_HOUR"
     FLAT = "FLAT"

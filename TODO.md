@@ -43,7 +43,7 @@
 - [x] Refund
 - [x] Discount
 - [x] Inventory
-- [ ] Reservations
+- [x] Reservations
 
 ## Phase 4
 - [ ] Reports

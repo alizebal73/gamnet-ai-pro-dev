@@ -29,6 +29,7 @@
 - Shifts + cash drawer: migration `010_shifts.sql` (one open shift enforced, cash movements, sale.shift_id, `shift.manage` permission), drawer math (float + cash + IN − OUT), variance-requires-note close, audited open/close/movements
 - Refunds: migration `011_refunds.sql`, full/partial refunds (CASH via open-shift drawer OUT movement, BALANCE via credit-back), proportional TIME/PACKAGE revoke of remaining-only, strict RECHARGE clawback, VIP cancel on full refund with chain promotion, `sales.refund` guarded, sale detail carries refunds + refunded_total
 - Inventory: migration `012_inventory.sql` (items + append-only stock ledger), receive/adjust/archive flows, FOOD sale items priced from catalog with draft-time and confirm-time stock gates, stock decremented at activation, no auto-restock on food refunds, stock-vs-ledger reconciliation check
+- Capacity: migration `013_capacity.sql` (reservations + queue + session groups), reservation booking with overlap detection + cancel/no-show/seat-into-session, FIFO queue with priority + opt-in VIP boost + expiry, group sessions with shared end-all (separate payments preserved)
 
 ### Fixed
 - Replaced unmaintained `passlib` with direct `bcrypt` for PIN/password hashing (passlib 1.7.4 crashes with bcrypt >= 4.1, which broke customer creation with HTTP 500)

@@ -20,6 +20,7 @@ KNOWN_SETTINGS = {
     "operator_max_discount_pct", "vip_renewal_mode", "credit_priority",
     "agent_lease_sec", "agent_token_ttl_hours", "agent_command_ttl_sec",
     "lease_monitor_interval_sec",
+    "queue_vip_priority", "queue_expire_min",
 }
 
 
@@ -57,6 +58,12 @@ def _validate_setting(key: str, value: str) -> None:
     elif key == "lease_monitor_interval_sec":
         if not value.isdigit() or not 5 <= int(value) <= 300:
             raise ValueError("lease_monitor_interval_sec must be 5..300")
+    elif key == "queue_vip_priority":
+        if value not in ("0", "1"):
+            raise ValueError("queue_vip_priority must be 0 or 1")
+    elif key == "queue_expire_min":
+        if not value.isdigit() or not 5 <= int(value) <= 1440:
+            raise ValueError("queue_expire_min must be 5..1440")
 
 
 def _client_ip(request: Request) -> str | None:

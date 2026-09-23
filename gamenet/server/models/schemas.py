@@ -701,6 +701,94 @@ class StockLedgerResponse(BaseModel):
     created_at: str
 
 
+class ReservationCreate(BaseModel):
+    customer_id: str = Field(min_length=1)
+    pc_id: str = Field(min_length=1)
+    starts_at: str = Field(min_length=1)
+    ends_at: str = Field(min_length=1)
+    note: str | None = Field(default=None, max_length=300)
+
+
+class ReservationResponse(BaseModel):
+    id: str
+    customer_id: str
+    pc_id: str
+    starts_at: str
+    ends_at: str
+    status: str
+    note: str | None
+    cancel_reason: str | None
+    created_by: str
+    created_at: str
+    updated_at: str
+
+
+class ReservationCancel(BaseModel):
+    reason: str = Field(min_length=1, max_length=300)
+
+
+class SeatResponse(BaseModel):
+    reservation: ReservationResponse | None = None
+    entry: dict | None = None
+    session: dict
+
+
+class QueueJoin(BaseModel):
+    customer_id: str = Field(min_length=1)
+    pc_id: str | None = None
+    priority: int = Field(default=0, ge=0, le=100)
+    note: str | None = Field(default=None, max_length=300)
+
+
+class QueueEntryResponse(BaseModel):
+    id: str
+    customer_id: str
+    customer_name: str | None
+    pc_id: str | None
+    priority: int
+    status: str
+    note: str | None
+    created_by: str
+    created_at: str
+    called_at: str | None
+    vip_boosted: bool = False
+    position: int | None = None
+
+
+class QueueSeatRequest(BaseModel):
+    pc_id: str | None = None
+
+
+class GroupCreate(BaseModel):
+    name: str | None = Field(default=None, max_length=120)
+    shared_ends_at: str | None = None
+
+
+class GroupMemberAdd(BaseModel):
+    session_id: str = Field(min_length=1)
+
+
+class GroupEndAll(BaseModel):
+    reason: str | None = Field(default=None, max_length=300)
+
+
+class GroupResponse(BaseModel):
+    id: str
+    name: str | None
+    shared_ends_at: str | None
+    status: str
+    created_by: str
+    created_at: str
+    closed_at: str | None
+    members: list[dict] = []
+
+
+class GroupEndResult(BaseModel):
+    group: GroupResponse
+    ended: list[str]
+    skipped: list[dict]
+
+
 class PresenceResponse(BaseModel):
     pc_id: str
     online: bool

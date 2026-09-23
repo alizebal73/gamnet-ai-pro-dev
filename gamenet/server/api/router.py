@@ -8,12 +8,15 @@ from gamenet.server.api import (
     catalog,
     credit,
     customers,
+    groups,
     health,
     payments,
     pcs,
     pricing,
+    queue,
     refunds,
     inventory,
+    reservations,
     sales,
     sessions,
     shifts,
@@ -38,3 +41,6 @@ api_router.include_router(shifts.router)
 api_router.include_router(refunds.router)
 api_router.include_router(inventory.router)
 api_router.include_router(pcs.router)
+api_router.include_router(reservations.router)
+api_router.include_router(queue.router)
+api_router.include_router(groups.router)
